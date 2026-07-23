@@ -5,12 +5,13 @@ WORKDIR /app
 
 COPY pom.xml .
 
-# Downloads dependencies separately so later builds can reuse the cache.
+# Downloads dependencies separately for Docker caching.
 RUN mvn dependency:go-offline -B
 
 COPY src ./src
 
-RUN mvn clean package -DskipTests
+# Skip test compilation and execution.
+RUN mvn clean package -Dmaven.test.skip=true
 
 
 # Runtime stage
