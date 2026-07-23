@@ -5,8 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-
+import java.time.Instant;
 /*
  * Stores an audit record of an important action.
  *
@@ -80,15 +79,19 @@ public class ActivityLog {
     )
     private String description;
 
+    /*
+     * Stored as a UTC instant so clients can convert
+     * it to their own local timezone.
+     */
     @Column(
             name = "created_at",
             nullable = false,
             updatable = false
     )
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @PrePersist
     public void prePersist() {
-        createdAt = LocalDateTime.now();
+        createdAt = Instant.now();
     }
 }

@@ -3,56 +3,53 @@ import { AuthSession, LoginResponse } from '../../features/auth/models/auth.mode
 /*
  * Centralizes authentication session storage.
  *
- * The shared Signal ensures that AuthService, guards,
- * interceptors, and layout components always observe
- * the same authentication state.
+ * The shared Signal ensures AuthService, guards,
+ * interceptors, and layout components use the same session.
  */
 @Injectable({
   providedIn: 'root'
 })
 export class TokenStorageService {
 
-  private readonly storageKey =
-    'tasks-manager-auth-session';
+  private readonly storageKey = 'tasks-manager-auth-session';
 
-  private readonly sessionSignal =
-    signal<AuthSession | null>(
-      this.readStoredSession()
-    );
+  private readonly sessionSignal = signal<AuthSession | null>(this.readStoredSession());
 
-  readonly session =
-    this.sessionSignal.asReadonly();
+  readonly session = this.sessionSignal.asReadonly();
 
   /*
-   * Stores a successful login response and updates
-   * the shared in-memory session immediately.
+   * Stores the successful login response.
    */
-  setSession(
-    response: LoginResponse
-  ): void {
+  setSession(response: LoginResponse): void {
     const session: AuthSession = {
-      accessToken:
-        response.accessToken,
-
-      tokenType:
-        response.tokenType,
-
-      username:
-        response.username,
-
-      fullName:
-        response.fullName,
-
-      role:
-        response.role
+      accessToken: response.accessToken,
+      tokenType: response.tokenType,
+      username: response.username,
+      fullName: response.fullName,
+      role: response.role
     };
 
-    localStorage.setItem(
-      this.storageKey,
-      JSON.stringify(session)
-    );
+    this.saveSession(session);
+  }
 
-    this.sessionSignal.set(session);
+  /*
+   * Updates the stored identity after the user
+   * changes their profile information.
+   */
+  updateProfileIdentity(username: string, fullName: string): void {
+    const currentSession = this.sessionSignal();
+
+    if (!currentSession) {
+      return;
+    }
+
+    const updatedSession: AuthSession = {
+      ...currentSession,
+      username,
+      fullName
+    };
+
+    this.saveSession(updatedSession);
   }
 
   getSession(): AuthSession | null {
@@ -60,13 +57,11 @@ export class TokenStorageService {
   }
 
   getAccessToken(): string | null {
-    return this.sessionSignal()
-      ?.accessToken ?? null;
+    return this.sessionSignal()?.accessToken ?? null;
   }
 
   getTokenType(): string {
-    return this.sessionSignal()
-      ?.tokenType ?? 'Bearer';
+    return this.sessionSignal()?.tokenType ?? 'Bearer';
   }
 
   hasSession(): boolean {
@@ -74,92 +69,63 @@ export class TokenStorageService {
   }
 
   /*
-   * Removes both the persisted and in-memory session.
-   *
-   * This is important when the interceptor receives 401.
+   * Removes the persisted and in-memory session.
    */
   clearSession(): void {
-    localStorage.removeItem(
-      this.storageKey
-    );
-
+    localStorage.removeItem(this.storageKey);
     this.sessionSignal.set(null);
   }
 
   /*
-   * Safely restores the session after browser refresh.
+   * Saves the session and immediately updates
+   * all components reading the shared Signal.
    */
-  private readStoredSession():
-    AuthSession | null {
-    const storedValue =
-      localStorage.getItem(
-        this.storageKey
-      );
+  private saveSession(session: AuthSession): void {
+    localStorage.setItem(this.storageKey, JSON.stringify(session));
+    this.sessionSignal.set(session);
+  }
+
+  /*
+   * Restores the session after browser refresh.
+   */
+  private readStoredSession(): AuthSession | null {
+    const storedValue = localStorage.getItem(this.storageKey);
 
     if (!storedValue) {
       return null;
     }
 
     try {
-      const parsedValue:
-        unknown =
-          JSON.parse(storedValue);
+      const parsedValue: unknown = JSON.parse(storedValue);
 
-      if (
-        !this.isValidSession(
-          parsedValue
-        )
-      ) {
-        localStorage.removeItem(
-          this.storageKey
-        );
-
+      if (!this.isValidSession(parsedValue)) {
+        localStorage.removeItem(this.storageKey);
         return null;
       }
 
       return parsedValue;
     } catch {
-      localStorage.removeItem(
-        this.storageKey
-      );
-
+      localStorage.removeItem(this.storageKey);
       return null;
     }
   }
 
-  private isValidSession(
-    value: unknown
-  ): value is AuthSession {
-    if (
-      typeof value !== 'object' ||
-      value === null
-    ) {
+  private isValidSession(value: unknown): value is AuthSession {
+    if (typeof value !== 'object' || value === null) {
       return false;
     }
 
-    const session =
-      value as Partial<AuthSession>;
-
-    const validRole =
-      session.role === 'ADMIN' ||
-      session.role === 'USER';
+    const session = value as Partial<AuthSession>;
+    const validRole = session.role === 'ADMIN' || session.role === 'USER';
 
     return (
-      typeof session.accessToken ===
-        'string' &&
+      typeof session.accessToken === 'string' &&
       session.accessToken.length > 0 &&
-
-      typeof session.tokenType ===
-        'string' &&
+      typeof session.tokenType === 'string' &&
       session.tokenType.length > 0 &&
-
-      typeof session.username ===
-        'string' &&
+      typeof session.username === 'string' &&
       session.username.length > 0 &&
-
-      typeof session.fullName ===
-        'string' &&
-
+      typeof session.fullName === 'string' &&
       validRole
     );
   }

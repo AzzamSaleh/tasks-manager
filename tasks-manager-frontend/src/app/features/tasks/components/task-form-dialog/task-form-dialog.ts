@@ -1,23 +1,6 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  HostListener,
-  OnInit,
-  computed,
-  inject,
-  input,
-  output,
-  signal
-} from '@angular/core';
-import {
-  NonNullableFormBuilder,
-  ReactiveFormsModule,
-  Validators
-} from '@angular/forms';
-import {
-  takeUntilDestroyed
-} from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, DestroyRef, HostListener, OnInit, computed, inject, input, output, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
 
 import { AlertService } from '../../../../core/services/alert.service';
@@ -26,25 +9,13 @@ import { FormErrorService } from '../../../../core/services/form-error.service';
 
 import { UserResponse } from '../../../users/models/user.models';
 
-import {
-  TASK_PRIORITY_OPTIONS,
-  TASK_STATUS_OPTIONS
-} from '../../constants/task.constants';
+import { TASK_PRIORITY_OPTIONS, TASK_STATUS_OPTIONS } from '../../constants/task.constants';
 
-import {
-  CreateTaskRequest,
-  TaskPriority,
-  TaskResponse,
-  TaskStatus,
-  UpdateTaskRequest
-} from '../../models/task.models';
+import { CreateTaskRequest, TaskPriority, TaskResponse, TaskStatus, UpdateTaskRequest } from '../../models/task.models';
 
 import { TaskService } from '../../services/task.service';
 
-import {
-  toApiLocalDateTime,
-  toDateTimeLocalValue
-} from '../../utils/task-date.util';
+import { toApiLocalDateTime, toDateTimeLocalValue } from '../../utils/task-date.util';
 
 interface TaskFormValue {
   title: string;

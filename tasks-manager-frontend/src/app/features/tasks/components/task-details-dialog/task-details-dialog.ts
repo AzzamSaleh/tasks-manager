@@ -1,27 +1,7 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  HostListener,
-  OnInit,
-  computed,
-  inject,
-  input,
-  output,
-  signal
-} from '@angular/core';
-import {
-  DatePipe,
-  NgClass
-} from '@angular/common';
-import {
-  NonNullableFormBuilder,
-  ReactiveFormsModule,
-  Validators
-} from '@angular/forms';
-import {
-  takeUntilDestroyed
-} from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, DestroyRef, HostListener, OnInit, computed, inject, input, output, signal } from '@angular/core';
+import { DatePipe, NgClass } from '@angular/common';
+import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { finalize } from 'rxjs';
 
 import { createPagedListState } from '../../../../core/state/paged-list.state';
@@ -32,27 +12,16 @@ import { FormErrorService } from '../../../../core/services/form-error.service';
 
 import { AuthService } from '../../../auth/services/auth.service';
 
-import {
-  TASK_PRIORITY_META,
-  TASK_STATUS_META
-} from '../../constants/task.constants';
+import { TASK_PRIORITY_META, TASK_STATUS_META } from '../../constants/task.constants';
 
-import {
-  TaskCommentResponse
-} from '../../models/task-comment.models';
+import { TaskCommentResponse } from '../../models/task-comment.models';
 
-import {
-  TaskDueState,
-  TaskResponse
-} from '../../models/task.models';
+import { TaskDueState, TaskResponse } from '../../models/task.models';
 
 import { TaskCommentService } from '../../services/task-comment.service';
 import { TaskService } from '../../services/task.service';
 
-import {
-  getTaskDueLabel,
-  getTaskDueState
-} from '../../utils/task-date.util';
+import { getTaskDueLabel, getTaskDueState } from '../../utils/task-date.util';
 
 const COMMENT_PAGE_SIZE = 10;
 const COMMENT_MAX_LENGTH = 2000;
@@ -68,152 +37,102 @@ const COMMENT_MAX_LENGTH = 2000;
     NgClass,
     ReactiveFormsModule
   ],
-  templateUrl:
-    './task-details-dialog.html',
-  styleUrl:
-    './task-details-dialog.css',
-  changeDetection:
-    ChangeDetectionStrategy.OnPush
+  templateUrl: './task-details-dialog.html',
+  styleUrl: './task-details-dialog.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TaskDetailsDialog
-  implements OnInit {
+export class TaskDetailsDialog implements OnInit {
 
-  readonly taskId =
-    input.required<number>();
+  readonly taskId = input.required<number>();
 
-  readonly closed =
-    output<void>();
+  readonly closed = output<void>();
 
-  private readonly destroyRef =
-    inject(DestroyRef);
+  private readonly destroyRef = inject(DestroyRef);
 
-  private readonly formBuilder =
-    inject(NonNullableFormBuilder);
+  private readonly formBuilder = inject(NonNullableFormBuilder);
 
-  private readonly taskService =
-    inject(TaskService);
+  private readonly taskService = inject(TaskService);
 
-  private readonly commentService =
-    inject(TaskCommentService);
+  private readonly commentService = inject(TaskCommentService);
 
-  private readonly authService =
-    inject(AuthService);
+  private readonly authService = inject(AuthService);
 
-  private readonly alertService =
-    inject(AlertService);
+  private readonly alertService = inject(AlertService);
 
-  private readonly apiErrorService =
-    inject(ApiErrorService);
+  private readonly apiErrorService = inject(ApiErrorService);
 
-  private readonly formErrorService =
-    inject(FormErrorService);
+  private readonly formErrorService = inject(FormErrorService);
 
-  private readonly confirmationService =
-    inject(ConfirmationService);
+  private readonly confirmationService = inject(ConfirmationService);
 
-  private readonly commentState =
-    createPagedListState<
-      TaskCommentResponse
-    >(COMMENT_PAGE_SIZE);
+  private readonly commentState = createPagedListState<TaskCommentResponse>(COMMENT_PAGE_SIZE);
 
-  readonly task =
-    signal<TaskResponse | null>(null);
+  readonly task = signal<TaskResponse | null>(null);
 
-  readonly isLoadingTask =
-    signal(false);
+  readonly isLoadingTask = signal(false);
 
-  readonly taskError =
-    signal<string | null>(null);
+  readonly taskError = signal<string | null>(null);
 
-  readonly isCreatingComment =
-    signal(false);
+  readonly isCreatingComment = signal(false);
 
-  readonly editingCommentId =
-    signal<number | null>(null);
+  readonly editingCommentId = signal<number | null>(null);
 
-  readonly updatingCommentId =
-    signal<number | null>(null);
+  readonly updatingCommentId = signal<number | null>(null);
 
-  readonly deletingCommentId =
-    signal<number | null>(null);
+  readonly deletingCommentId = signal<number | null>(null);
 
-  readonly comments =
-    this.commentState.items;
+  readonly comments = this.commentState.items;
 
-  readonly isLoadingComments =
-    this.commentState.isLoading;
+  readonly isLoadingComments = this.commentState.isLoading;
 
-  readonly commentsError =
-    this.commentState.errorMessage;
+  readonly commentsError = this.commentState.errorMessage;
 
-  readonly commentPage =
-    this.commentState.currentPage;
+  readonly commentPage = this.commentState.currentPage;
 
-  readonly commentTotalPages =
-    this.commentState.totalPages;
+  readonly commentTotalPages = this.commentState.totalPages;
 
-  readonly commentTotalElements =
-    this.commentState.totalElements;
+  readonly commentTotalElements = this.commentState.totalElements;
 
-  readonly commentVisiblePages =
-    this.commentState.visiblePages;
+  readonly commentVisiblePages = this.commentState.visiblePages;
 
-  readonly commentIsFirstPage =
-    this.commentState.isFirstPage;
+  readonly commentIsFirstPage = this.commentState.isFirstPage;
 
-  readonly commentIsLastPage =
-    this.commentState.isLastPage;
+  readonly commentIsLastPage = this.commentState.isLastPage;
 
-  readonly currentUser =
-    this.authService.currentUser;
+  readonly currentUser = this.authService.currentUser;
 
-  readonly isAdmin =
-    computed(
-      () =>
-        this.currentUser()?.role ===
-        'ADMIN'
-    );
+  readonly isAdmin = computed(() => this.currentUser()?.role === 'ADMIN');
 
-  readonly statusMeta =
-    TASK_STATUS_META;
+  readonly statusMeta = TASK_STATUS_META;
 
-  readonly priorityMeta =
-    TASK_PRIORITY_META;
+  readonly priorityMeta = TASK_PRIORITY_META;
 
-  readonly commentForm =
-    this.formBuilder.group({
-      content: [
-        '',
-        [
-          Validators.required,
-          Validators.maxLength(
-            COMMENT_MAX_LENGTH
-          )
-        ]
+  readonly commentForm = this.formBuilder.group({
+    content: [
+      '',
+      [
+        Validators.required,
+        Validators.maxLength(COMMENT_MAX_LENGTH)
       ]
-    });
+    ]
+  });
 
-  readonly editCommentForm =
-    this.formBuilder.group({
-      content: [
-        '',
-        [
-          Validators.required,
-          Validators.maxLength(
-            COMMENT_MAX_LENGTH
-          )
-        ]
+  readonly editCommentForm = this.formBuilder.group({
+    content: [
+      '',
+      [
+        Validators.required,
+        Validators.maxLength(COMMENT_MAX_LENGTH)
       ]
-    });
+    ]
+  });
 
   ngOnInit(): void {
     this.loadTask();
     this.loadComments(0);
   }
 
-  @HostListener(
-    'document:keydown.escape'
-  )
+  @HostListener('document:keydown.escape')
   handleEscape(): void {
     this.close();
   }
@@ -232,30 +151,33 @@ export class TaskDetailsDialog
 
   retry(): void {
     this.loadTask();
-    this.loadComments(
-      this.commentPage()
-    );
+    this.loadComments(this.commentPage());
   }
 
   submitComment(): void {
-    this.formErrorService
-      .clearBackendErrors(
-        this.commentForm
-      );
+    this.formErrorService.clearBackendErrors(this.commentForm);
 
-    const content =
-      this.commentForm.controls
-        .content.value.trim();
+    /*
+     * Prevents submission when the comment exceeds
+     * the configured 2,000-character limit.
+     */
+    if (this.commentForm.invalid) {
+      this.commentForm.markAllAsTouched();
+      return;
+    }
 
+    const content = this.commentForm.controls.content.value.trim();
+
+    /*
+     * Angular's required validator accepts text containing
+     * only spaces, so trimmed content is checked separately.
+     */
     if (!content) {
-      this.commentForm.controls
-        .content.setErrors({
-          required: true
-        });
+      this.commentForm.controls.content.setErrors({
+        required: true
+      });
 
-      this.commentForm.controls
-        .content.markAsTouched();
-
+      this.commentForm.controls.content.markAsTouched();
       return;
     }
 
@@ -269,14 +191,10 @@ export class TaskDetailsDialog
         }
       )
       .pipe(
-        takeUntilDestroyed(
-          this.destroyRef
-        ),
+        takeUntilDestroyed(this.destroyRef),
 
         finalize(() => {
-          this.isCreatingComment.set(
-            false
-          );
+          this.isCreatingComment.set(false);
         })
       )
       .subscribe({
@@ -295,21 +213,16 @@ export class TaskDetailsDialog
            * After creation, load the last page so
            * the newly added comment is visible.
            */
-          const lastPage =
-            Math.floor(
-              this.commentTotalElements() /
-              COMMENT_PAGE_SIZE
-            );
+          const lastPage = Math.floor(this.commentTotalElements() / COMMENT_PAGE_SIZE);
 
           this.loadComments(lastPage);
         },
 
         error: error => {
-          this.formErrorService
-            .applyBackendErrors(
-              this.commentForm,
-              error
-            );
+          this.formErrorService.applyBackendErrors(
+            this.commentForm,
+            error
+          );
 
           this.alertService.error(
             this.apiErrorService.getMessage(
@@ -321,16 +234,12 @@ export class TaskDetailsDialog
       });
   }
 
-  startEditing(
-    comment: TaskCommentResponse
-  ): void {
+  startEditing(comment: TaskCommentResponse): void {
     if (!this.canEdit(comment)) {
       return;
     }
 
-    this.editingCommentId.set(
-      comment.id
-    );
+    this.editingCommentId.set(comment.id);
 
     this.editCommentForm.reset({
       content: comment.content
@@ -345,37 +254,34 @@ export class TaskDetailsDialog
     });
   }
 
-  saveComment(
-    comment: TaskCommentResponse
-  ): void {
+  saveComment(comment: TaskCommentResponse): void {
     if (!this.canEdit(comment)) {
       return;
     }
 
-    this.formErrorService
-      .clearBackendErrors(
-        this.editCommentForm
-      );
+    this.formErrorService.clearBackendErrors(this.editCommentForm);
 
-    const content =
-      this.editCommentForm.controls
-        .content.value.trim();
-
-    if (!content) {
-      this.editCommentForm.controls
-        .content.setErrors({
-          required: true
-        });
-
-      this.editCommentForm.controls
-        .content.markAsTouched();
-
+    /*
+     * Prevents updating a comment when it exceeds
+     * the configured 2,000-character limit.
+     */
+    if (this.editCommentForm.invalid) {
+      this.editCommentForm.markAllAsTouched();
       return;
     }
 
-    this.updatingCommentId.set(
-      comment.id
-    );
+    const content = this.editCommentForm.controls.content.value.trim();
+
+    if (!content) {
+      this.editCommentForm.controls.content.setErrors({
+        required: true
+      });
+
+      this.editCommentForm.controls.content.markAsTouched();
+      return;
+    }
+
+    this.updatingCommentId.set(comment.id);
 
     this.commentService
       .updateComment(
@@ -386,22 +292,16 @@ export class TaskDetailsDialog
         }
       )
       .pipe(
-        takeUntilDestroyed(
-          this.destroyRef
-        ),
+        takeUntilDestroyed(this.destroyRef),
 
         finalize(() => {
-          this.updatingCommentId.set(
-            null
-          );
+          this.updatingCommentId.set(null);
         })
       )
       .subscribe({
         next: updatedComment => {
           this.commentState.replaceItem(
-            currentComment =>
-              currentComment.id ===
-              updatedComment.id,
+            currentComment => currentComment.id === updatedComment.id,
             updatedComment
           );
 
@@ -414,11 +314,10 @@ export class TaskDetailsDialog
         },
 
         error: error => {
-          this.formErrorService
-            .applyBackendErrors(
-              this.editCommentForm,
-              error
-            );
+          this.formErrorService.applyBackendErrors(
+            this.editCommentForm,
+            error
+          );
 
           this.alertService.error(
             this.apiErrorService.getMessage(
@@ -430,26 +329,18 @@ export class TaskDetailsDialog
       });
   }
 
-  async requestDeleteComment(
-    comment: TaskCommentResponse
-  ): Promise<void> {
+  async requestDeleteComment(comment: TaskCommentResponse): Promise<void> {
     if (!this.canDelete(comment)) {
       return;
     }
 
-    const confirmed =
-      await this.confirmationService
-        .confirm({
-          title: 'Delete comment?',
-          message:
-            'This comment will be permanently deleted. This action cannot be reversed.',
-          confirmText:
-            'Delete comment',
-          cancelText:
-            'Keep comment',
-          tone:
-            'danger'
-        });
+    const confirmed = await this.confirmationService.confirm({
+      title: 'Delete comment?',
+      message: 'This comment will be permanently deleted. This action cannot be reversed.',
+      confirmText: 'Delete comment',
+      cancelText: 'Keep comment',
+      tone: 'danger'
+    });
 
     if (!confirmed) {
       return;
@@ -458,45 +349,28 @@ export class TaskDetailsDialog
     this.deleteComment(comment);
   }
 
-  goToCommentPage(
-    page: number
-  ): void {
-    if (
-      !this.commentState.setPage(page)
-    ) {
+  goToCommentPage(page: number): void {
+    if (!this.commentState.setPage(page)) {
       return;
     }
 
     this.loadComments(page);
   }
 
-  canEdit(
-    comment: TaskCommentResponse
-  ): boolean {
+  canEdit(comment: TaskCommentResponse): boolean {
     return this.isOwnComment(comment);
   }
 
-  canDelete(
-    comment: TaskCommentResponse
-  ): boolean {
-    return (
-      this.isAdmin() ||
-      this.isOwnComment(comment)
-    );
+  canDelete(comment: TaskCommentResponse): boolean {
+    return this.isAdmin() || this.isOwnComment(comment);
   }
 
-  isEdited(
-    comment: TaskCommentResponse
-  ): boolean {
-    return (
-      comment.createdAt !==
-      comment.updatedAt
-    );
+  isEdited(comment: TaskCommentResponse): boolean {
+    return comment.createdAt !== comment.updatedAt;
   }
 
   dueState(): TaskDueState {
-    const task =
-      this.task();
+    const task = this.task();
 
     return task
       ? getTaskDueState(task)
@@ -504,14 +378,10 @@ export class TaskDetailsDialog
   }
 
   dueLabel(): string {
-    return getTaskDueLabel(
-      this.dueState()
-    );
+    return getTaskDueLabel(this.dueState());
   }
 
-  getInitials(
-    name: string
-  ): string {
+  getInitials(name: string): string {
     const parts = name
       .trim()
       .split(/\s+/)
@@ -522,16 +392,12 @@ export class TaskDetailsDialog
     }
 
     if (parts.length === 1) {
-      return parts[0]
-        .charAt(0)
-        .toUpperCase();
+      return parts[0].charAt(0).toUpperCase();
     }
 
     return (
       parts[0].charAt(0) +
-      parts[
-        parts.length - 1
-      ].charAt(0)
+      parts[parts.length - 1].charAt(0)
     ).toUpperCase();
   }
 
@@ -540,13 +406,9 @@ export class TaskDetailsDialog
     this.taskError.set(null);
 
     this.taskService
-      .getTaskById(
-        this.taskId()
-      )
+      .getTaskById(this.taskId())
       .pipe(
-        takeUntilDestroyed(
-          this.destroyRef
-        ),
+        takeUntilDestroyed(this.destroyRef),
 
         finalize(() => {
           this.isLoadingTask.set(false);
@@ -570,9 +432,7 @@ export class TaskDetailsDialog
       });
   }
 
-  private loadComments(
-    page: number
-  ): void {
+  private loadComments(page: number): void {
     this.commentState.startLoading();
 
     this.commentService
@@ -582,19 +442,15 @@ export class TaskDetailsDialog
         COMMENT_PAGE_SIZE
       )
       .pipe(
-        takeUntilDestroyed(
-          this.destroyRef
-        ),
+        takeUntilDestroyed(this.destroyRef),
 
         finalize(() => {
-          this.commentState
-            .finishLoading();
+          this.commentState.finishLoading();
         })
       )
       .subscribe({
         next: response => {
-          this.commentState
-            .setResponse(response);
+          this.commentState.setResponse(response);
         },
 
         error: error => {
@@ -608,12 +464,8 @@ export class TaskDetailsDialog
       });
   }
 
-  private deleteComment(
-    comment: TaskCommentResponse
-  ): void {
-    this.deletingCommentId.set(
-      comment.id
-    );
+  private deleteComment(comment: TaskCommentResponse): void {
+    this.deletingCommentId.set(comment.id);
 
     this.commentService
       .deleteComment(
@@ -621,31 +473,21 @@ export class TaskDetailsDialog
         comment.id
       )
       .pipe(
-        takeUntilDestroyed(
-          this.destroyRef
-        ),
+        takeUntilDestroyed(this.destroyRef),
 
         finalize(() => {
-          this.deletingCommentId.set(
-            null
-          );
+          this.deletingCommentId.set(null);
         })
       )
       .subscribe({
         next: () => {
-          if (
-            this.editingCommentId() ===
-            comment.id
-          ) {
+          if (this.editingCommentId() === comment.id) {
             this.cancelEditing();
           }
 
-          this.commentState
-            .moveToPreviousPageIfEmptyAfterDelete();
+          this.commentState.moveToPreviousPageIfEmptyAfterDelete();
 
-          this.loadComments(
-            this.commentPage()
-          );
+          this.loadComments(this.commentPage());
 
           this.alertService.success(
             'The comment was deleted successfully.',
@@ -673,35 +515,22 @@ export class TaskDetailsDialog
    * For Admin, author role and full name are used until
    * the login response is later enhanced with userId.
    */
-  private isOwnComment(
-    comment: TaskCommentResponse
-  ): boolean {
-    const currentUser =
-      this.currentUser();
+  private isOwnComment(comment: TaskCommentResponse): boolean {
+    const currentUser = this.currentUser();
 
-    const task =
-      this.task();
+    const task = this.task();
 
-    if (
-      !currentUser ||
-      !task
-    ) {
+    if (!currentUser || !task) {
       return false;
     }
 
-    if (
-      currentUser.role === 'USER'
-    ) {
-      return (
-        comment.authorId ===
-        task.assignedUserId
-      );
+    if (currentUser.role === 'USER') {
+      return comment.authorId === task.assignedUserId;
     }
 
     return (
       comment.authorRole === 'ADMIN' &&
-      comment.authorName ===
-        currentUser.fullName
+      comment.authorName === currentUser.fullName
     );
   }
 }

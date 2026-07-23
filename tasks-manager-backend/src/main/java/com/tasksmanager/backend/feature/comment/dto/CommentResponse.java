@@ -3,6 +3,7 @@ package com.tasksmanager.backend.feature.comment.dto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 /*
@@ -21,6 +22,6 @@ public class CommentResponse {
     private String authorName;
     private String authorRole;
 
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
 }

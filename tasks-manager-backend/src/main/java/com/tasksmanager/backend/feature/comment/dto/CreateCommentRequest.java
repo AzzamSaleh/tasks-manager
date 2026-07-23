@@ -15,9 +15,6 @@ import lombok.Setter;
 public class CreateCommentRequest {
 
     @NotBlank(message = "Comment content is mandatory")
-    @Size(
-            max = 1000,
-            message = "Comment content cannot exceed 1000 characters"
-    )
+    @Size(max = 2000, message = "Comment content cannot exceed 2000 characters")
     private String content;
 }

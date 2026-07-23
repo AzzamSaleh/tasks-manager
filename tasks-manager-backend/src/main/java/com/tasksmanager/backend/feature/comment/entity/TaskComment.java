@@ -9,7 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 /*
  * Represents a comment added to a task.
@@ -30,49 +30,33 @@ public class TaskComment {
     private Long id;
 
     @NotBlank(message = "Comment content is mandatory")
-    @Size(
-            max = 1000,
-            message = "Comment content cannot exceed 1000 characters"
-    )
-    @Column(
-            name = "content",
-            nullable = false,
-            length = 1000
-    )
+    @Size(max = 2000, message = "Comment content cannot exceed 2000 characters")
+    @Column(name = "content", nullable = false, length = 2000)
     private String content;
 
     /*
      * The task that contains this comment.
      */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "task_id",
-            nullable = false
-    )
+    @JoinColumn(name = "task_id", nullable = false)
     private Task task;
 
     /*
-     * The Admin or User who added the comment.
+     * The Admin or User who added this comment.
      */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(
-            name = "author_id",
-            nullable = false
-    )
+    @JoinColumn(name = "author_id", nullable = false)
     private User author;
 
-    @Column(
-            name = "created_at",
-            nullable = false,
-            updatable = false
-    )
-    private LocalDateTime createdAt;
+    /*
+     * Stored as UTC instants so the frontend can
+     * display them using the browser's local timezone.
+     */
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
 
-    @Column(
-            name = "updated_at",
-            nullable = false
-    )
-    private LocalDateTime updatedAt;
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
 
     /*
      * Sets the creation and update timestamps
@@ -80,7 +64,7 @@ public class TaskComment {
      */
     @PrePersist
     public void prePersist() {
-        LocalDateTime now = LocalDateTime.now();
+        Instant now = Instant.now();
 
         createdAt = now;
         updatedAt = now;
@@ -91,6 +75,6 @@ public class TaskComment {
      */
     @PreUpdate
     public void preUpdate() {
-        updatedAt = LocalDateTime.now();
+        updatedAt = Instant.now();
     }
 }

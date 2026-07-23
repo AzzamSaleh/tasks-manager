@@ -3,7 +3,8 @@ package com.tasksmanager.backend.feature.dashboard.dto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+
 
 /*
  * Contains a short activity-log representation
@@ -20,5 +21,5 @@ public class DashboardActivityResponse {
     private String entityType;
     private Long entityId;
     private String description;
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 }

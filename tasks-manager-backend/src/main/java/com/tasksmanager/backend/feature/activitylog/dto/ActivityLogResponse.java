@@ -3,8 +3,7 @@ package com.tasksmanager.backend.feature.activitylog.dto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import java.time.LocalDateTime;
-
+import java.time.Instant;
 /*
  * Contains activity-log information returned to Admin.
  */
@@ -19,5 +18,5 @@ public class ActivityLogResponse {
     private String entityType;
     private Long entityId;
     private String description;
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 }
