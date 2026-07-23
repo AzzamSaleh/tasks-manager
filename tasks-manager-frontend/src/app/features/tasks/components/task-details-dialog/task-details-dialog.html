@@ -1,0 +1,545 @@
+<div
+  class="details-backdrop"
+  role="presentation"
+  (click)="close()"
+>
+  <aside
+    class="details-drawer"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="task-details-title"
+    (click)="$event.stopPropagation()"
+  >
+    <header class="drawer-header">
+      <div>
+        <span class="drawer-eyebrow">
+          Task details
+        </span>
+
+        <h2 id="task-details-title">
+          Task information
+        </h2>
+
+        <p>
+          Review the complete task and its
+          discussion.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        class="close-button"
+        aria-label="Close task details"
+        (click)="close()"
+      >
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </header>
+
+    @if (isLoadingTask()) {
+      <div class="task-loading">
+        <div class="loading-title"></div>
+        <div class="loading-line"></div>
+        <div class="loading-line short"></div>
+      </div>
+    } @else if (taskError()) {
+      <div class="drawer-state">
+        <i class="bi bi-exclamation-circle"></i>
+
+        <h3>Unable to load task</h3>
+
+        <p>{{ taskError() }}</p>
+
+        <button
+          type="button"
+          class="btn primary-button"
+          (click)="retry()"
+        >
+          Try again
+        </button>
+      </div>
+    } @else if (task(); as currentTask) {
+      <section class="task-information">
+        <div class="task-title-row">
+          <div>
+            <span
+              class="metadata-badge"
+              [ngClass]="
+                priorityMeta[
+                  currentTask.priority
+                ].cssClass
+              "
+            >
+              <i
+                class="bi"
+                [ngClass]="
+                  priorityMeta[
+                    currentTask.priority
+                  ].icon
+                "
+              ></i>
+
+              {{
+                priorityMeta[
+                  currentTask.priority
+                ].label
+              }}
+              priority
+            </span>
+
+            <h3>
+              {{ currentTask.title }}
+            </h3>
+          </div>
+
+          <span
+            class="metadata-badge"
+            [ngClass]="
+              statusMeta[
+                currentTask.status
+              ].cssClass
+            "
+          >
+            <i
+              class="bi"
+              [ngClass]="
+                statusMeta[
+                  currentTask.status
+                ].icon
+              "
+            ></i>
+
+            {{
+              statusMeta[
+                currentTask.status
+              ].label
+            }}
+          </span>
+        </div>
+
+        <p class="task-description">
+          {{ currentTask.description }}
+        </p>
+
+        <div class="information-grid">
+          <article class="information-card">
+            <span>Assigned user</span>
+
+            <div class="person-information">
+              <div class="person-avatar">
+                {{
+                  getInitials(
+                    currentTask.assignedUserName
+                  )
+                }}
+              </div>
+
+              <strong>
+                {{ currentTask.assignedUserName }}
+              </strong>
+            </div>
+          </article>
+
+          <article class="information-card">
+            <span>Created by</span>
+
+            <strong>
+              {{ currentTask.createdByName }}
+            </strong>
+          </article>
+
+          <article class="information-card">
+            <span>Due date</span>
+
+            <strong>
+              {{
+                currentTask.dueDate
+                  | date:
+                    'MMM d, y, h:mm a'
+              }}
+            </strong>
+
+            <small
+              [ngClass]="
+                'due-' + dueState()
+              "
+            >
+              {{ dueLabel() }}
+            </small>
+          </article>
+
+          <article class="information-card">
+            <span>Last updated</span>
+
+            <strong>
+              {{
+                currentTask.updatedAt
+                  | date:
+                    'MMM d, y, h:mm a'
+              }}
+            </strong>
+          </article>
+        </div>
+      </section>
+
+      <section class="discussion-section">
+        <header class="discussion-header">
+          <div>
+            <span class="section-eyebrow">
+              Discussion
+            </span>
+
+            <h3>
+              Comments
+              <small>
+                {{ commentTotalElements() }}
+              </small>
+            </h3>
+          </div>
+        </header>
+
+        <form
+          class="comment-composer"
+          [formGroup]="commentForm"
+          (ngSubmit)="submitComment()"
+        >
+          <textarea
+            class="form-control"
+            rows="3"
+            formControlName="content"
+            placeholder="Write a comment about this task..."
+          ></textarea>
+
+          <div class="composer-footer">
+            <div>
+              <span>
+                {{
+                  commentForm.controls
+                    .content.value.length
+                }}/2000
+              </span>
+
+              @if (
+                commentForm.controls
+                  .content.touched &&
+                commentForm.controls
+                  .content.hasError('required')
+              ) {
+                <small>
+                  Comment content is required.
+                </small>
+              }
+
+              @if (
+                commentForm.controls
+                  .content.hasError('maxlength')
+              ) {
+                <small>
+                  Comment cannot exceed 2000 characters.
+                </small>
+              }
+            </div>
+
+            <button
+              type="submit"
+              class="btn send-button"
+              [disabled]="isCreatingComment()"
+            >
+              @if (isCreatingComment()) {
+                <span
+                  class="spinner-border spinner-border-sm"
+                ></span>
+
+                Posting...
+              } @else {
+                <i class="bi bi-send"></i>
+                Post comment
+              }
+            </button>
+          </div>
+        </form>
+
+        @if (isLoadingComments()) {
+          <div class="comments-loading">
+            @for (
+              item of [1, 2, 3];
+              track item
+            ) {
+              <div class="comment-skeleton">
+                <span></span>
+                <div>
+                  <span></span>
+                  <span></span>
+                </div>
+              </div>
+            }
+          </div>
+        } @else if (commentsError()) {
+          <div class="comments-state">
+            <i class="bi bi-chat-square-x"></i>
+
+            <p>{{ commentsError() }}</p>
+
+            <button
+              type="button"
+              class="btn secondary-button"
+              (click)="
+                goToCommentPage(
+                  commentPage()
+                )
+              "
+            >
+              Reload comments
+            </button>
+          </div>
+        } @else if (
+          comments().length === 0
+        ) {
+          <div class="comments-state">
+            <i class="bi bi-chat-left-text"></i>
+
+            <h4>No comments yet</h4>
+
+            <p>
+              Start the discussion by posting
+              the first comment.
+            </p>
+          </div>
+        } @else {
+          <div class="comment-thread">
+            @for (
+              comment of comments();
+              track comment.id
+            ) {
+              <article class="comment-card">
+                <div
+                  class="comment-avatar"
+                  [class.admin-avatar]="
+                    comment.authorRole ===
+                    'ADMIN'
+                  "
+                >
+                  {{
+                    getInitials(
+                      comment.authorName
+                    )
+                  }}
+                </div>
+
+                <div class="comment-body">
+                  <header class="comment-header">
+                    <div>
+                      <strong>
+                        {{ comment.authorName }}
+                      </strong>
+
+                      <span
+                        class="role-label"
+                        [class.admin-role]="
+                          comment.authorRole ===
+                          'ADMIN'
+                        "
+                      >
+                        {{
+                          comment.authorRole ===
+                          'ADMIN'
+                            ? 'Admin'
+                            : 'User'
+                        }}
+                      </span>
+
+                      <small>
+                        {{
+                          comment.createdAt
+                            | date:
+                              'MMM d, y, h:mm a'
+                        }}
+
+                        @if (isEdited(comment)) {
+                          · Edited
+                        }
+                      </small>
+                    </div>
+
+                    @if (
+                      canEdit(comment) ||
+                      canDelete(comment)
+                    ) {
+                      <div class="comment-actions">
+                        @if (
+                          canEdit(comment) &&
+                          editingCommentId() !==
+                            comment.id
+                        ) {
+                          <button
+                            type="button"
+                            class="comment-action"
+                            title="Edit comment"
+                            (click)="
+                              startEditing(comment)
+                            "
+                          >
+                            <i class="bi bi-pencil"></i>
+                          </button>
+                        }
+
+                        @if (canDelete(comment)) {
+                          <button
+                            type="button"
+                            class="comment-action delete-comment"
+                            title="Delete comment"
+                            [disabled]="
+                              deletingCommentId() ===
+                              comment.id
+                            "
+                            (click)="
+                              requestDeleteComment(
+                                comment
+                              )
+                            "
+                          >
+                            @if (
+                              deletingCommentId() ===
+                              comment.id
+                            ) {
+                              <span
+                                class="spinner-border spinner-border-sm"
+                              ></span>
+                            } @else {
+                              <i class="bi bi-trash3"></i>
+                            }
+                          </button>
+                        }
+                      </div>
+                    }
+                  </header>
+
+                  @if (
+                    editingCommentId() ===
+                    comment.id
+                  ) {
+                    <form
+                      class="edit-comment-form"
+                      [formGroup]="editCommentForm"
+                      (ngSubmit)="saveComment(comment)"
+                    >
+                      <textarea
+                        class="form-control"
+                        rows="3"
+                        formControlName="content"
+                      ></textarea>
+
+                      @if (
+                        editCommentForm.controls
+                          .content.touched &&
+                        editCommentForm.controls
+                          .content.invalid
+                      ) {
+                        <small class="edit-error">
+                          Enter valid comment content.
+                        </small>
+                      }
+
+                      <div class="edit-actions">
+                        <button
+                          type="button"
+                          class="btn cancel-edit-button"
+                          [disabled]="
+                            updatingCommentId() ===
+                            comment.id
+                          "
+                          (click)="cancelEditing()"
+                        >
+                          Cancel
+                        </button>
+
+                        <button
+                          type="submit"
+                          class="btn save-edit-button"
+                          [disabled]="
+                            updatingCommentId() ===
+                            comment.id
+                          "
+                        >
+                          @if (
+                            updatingCommentId() ===
+                            comment.id
+                          ) {
+                            <span
+                              class="spinner-border spinner-border-sm"
+                            ></span>
+                            Saving...
+                          } @else {
+                            Save
+                          }
+                        </button>
+                      </div>
+                    </form>
+                  } @else {
+                    <p class="comment-content">
+                      {{ comment.content }}
+                    </p>
+                  }
+                </div>
+              </article>
+            }
+          </div>
+
+          @if (
+            commentTotalPages() > 1
+          ) {
+            <nav
+              class="comment-pagination"
+              aria-label="Comment pagination"
+            >
+              <button
+                type="button"
+                [disabled]="
+                  commentIsFirstPage()
+                "
+                (click)="
+                  goToCommentPage(
+                    commentPage() - 1
+                  )
+                "
+              >
+                <i class="bi bi-chevron-left"></i>
+              </button>
+
+              @for (
+                page of commentVisiblePages();
+                track page
+              ) {
+                <button
+                  type="button"
+                  [class.active]="
+                    page === commentPage()
+                  "
+                  (click)="
+                    goToCommentPage(page)
+                  "
+                >
+                  {{ page + 1 }}
+                </button>
+              }
+
+              <button
+                type="button"
+                [disabled]="
+                  commentIsLastPage()
+                "
+                (click)="
+                  goToCommentPage(
+                    commentPage() + 1
+                  )
+                "
+              >
+                <i class="bi bi-chevron-right"></i>
+              </button>
+            </nav>
+          }
+        }
+      </section>
+    }
+  </aside>
+</div>

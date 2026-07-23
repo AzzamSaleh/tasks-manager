@@ -1,0 +1,311 @@
+<section class="dashboard-page">
+
+  <header class="dashboard-heading">
+    <div class="heading-content">
+      <span class="dashboard-eyebrow">
+        System overview
+      </span>
+
+      <h2>
+        Welcome back,
+        {{ authService.currentUser()?.fullName }}
+      </h2>
+
+      <p>
+        Monitor users, task progress, overdue work,
+        and the latest activity across your workspace.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="refresh-button"
+      [disabled]="isLoading()"
+      (click)="loadStatistics()"
+    >
+      @if (isLoading()) {
+        <span
+          class="spinner-border spinner-border-sm"
+          aria-hidden="true"
+        ></span>
+
+        Refreshing...
+      } @else {
+        <i class="bi bi-arrow-clockwise"></i>
+        Refresh dashboard
+      }
+    </button>
+  </header>
+
+  @if (isLoading()) {
+    <section
+      class="dashboard-loading"
+      aria-label="Loading dashboard"
+    >
+      <div class="skeleton-grid">
+        @for (item of [1, 2, 3, 4]; track item) {
+          <div class="skeleton-card"></div>
+        }
+      </div>
+
+      <div class="dashboard-content-grid">
+        <div class="skeleton-panel"></div>
+        <div class="skeleton-panel"></div>
+      </div>
+    </section>
+  } @else if (errorMessage()) {
+    <section class="dashboard-error">
+      <div class="error-content">
+        <div class="error-icon">
+          <i class="bi bi-cloud-slash"></i>
+        </div>
+
+        <h3>Dashboard unavailable</h3>
+
+        <p>{{ errorMessage() }}</p>
+
+        <button
+          type="button"
+          class="retry-button"
+          (click)="loadStatistics()"
+        >
+          <i class="bi bi-arrow-clockwise me-2"></i>
+          Try again
+        </button>
+      </div>
+    </section>
+  } @else if (statistics(); as data) {
+
+    <section
+      class="metric-grid"
+      aria-label="Main statistics"
+    >
+      @for (
+        metric of metrics();
+        track metric.label
+      ) {
+        <article
+          class="metric-card"
+          [class]="'metric-card tone-' + metric.tone"
+        >
+          <div class="metric-card-header">
+            <div>
+              <div class="metric-label">
+                {{ metric.label }}
+              </div>
+
+              <p class="metric-value">
+                {{ metric.value }}
+              </p>
+            </div>
+
+            <div class="metric-icon">
+              <i
+                class="bi"
+                [class]="metric.icon"
+              ></i>
+            </div>
+          </div>
+
+          <p class="metric-description">
+            {{ metric.description }}
+          </p>
+        </article>
+      }
+    </section>
+
+    <section class="dashboard-content-grid">
+
+      <article class="dashboard-panel">
+        <header class="panel-heading">
+          <div>
+            <h3>Task progress</h3>
+
+            <p>
+              Current completion and status distribution
+            </p>
+          </div>
+
+          <i class="bi bi-bar-chart text-secondary"></i>
+        </header>
+
+        <div class="panel-body completion-layout">
+          <div
+            class="completion-chart"
+            [style.background]="
+              completionChartBackground()
+            "
+            aria-label="Task completion rate"
+          >
+            <div class="completion-value">
+              <strong>
+                {{ data.completionRate }}%
+              </strong>
+
+              <span>Completed</span>
+            </div>
+          </div>
+
+          <div class="status-breakdown">
+
+            <div class="status-row">
+              <div class="status-row-header">
+                <span>
+                  <i class="status-dot dot-pending"></i>
+                  Pending
+                </span>
+
+                <strong>
+                  {{ data.pendingTasks }}
+                </strong>
+              </div>
+
+              <div class="status-progress">
+                <div
+                  class="status-progress-bar bar-pending"
+                  [style.width.%]="
+                    getTaskPercentage(
+                      data.pendingTasks
+                    )
+                  "
+                ></div>
+              </div>
+            </div>
+
+            <div class="status-row">
+              <div class="status-row-header">
+                <span>
+                  <i class="status-dot dot-progress"></i>
+                  In progress
+                </span>
+
+                <strong>
+                  {{ data.inProgressTasks }}
+                </strong>
+              </div>
+
+              <div class="status-progress">
+                <div
+                  class="status-progress-bar bar-progress"
+                  [style.width.%]="
+                    getTaskPercentage(
+                      data.inProgressTasks
+                    )
+                  "
+                ></div>
+              </div>
+            </div>
+
+            <div class="status-row">
+              <div class="status-row-header">
+                <span>
+                  <i class="status-dot dot-completed"></i>
+                  Completed
+                </span>
+
+                <strong>
+                  {{ data.completedTasks }}
+                </strong>
+              </div>
+
+              <div class="status-progress">
+                <div
+                  class="status-progress-bar bar-completed"
+                  [style.width.%]="
+                    getTaskPercentage(
+                      data.completedTasks
+                    )
+                  "
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <footer class="account-summary">
+          <div>
+            <span>Active users</span>
+            <strong>{{ data.activeUsers }}</strong>
+          </div>
+
+          <div>
+            <span>Inactive users</span>
+            <strong>{{ data.inactiveUsers }}</strong>
+          </div>
+        </footer>
+      </article>
+
+      <article class="dashboard-panel">
+        <header class="panel-heading">
+          <div>
+            <h3>Recent activity</h3>
+
+            <p>
+              Latest important actions in the system
+            </p>
+          </div>
+
+          <i class="bi bi-clock-history text-secondary"></i>
+        </header>
+
+        @if (data.recentActivity.length === 0) {
+          <div class="empty-panel">
+            <div>
+              <i class="bi bi-clock-history"></i>
+
+              <strong>No activity yet</strong>
+
+              <span>
+                New system actions will appear here.
+              </span>
+            </div>
+          </div>
+        } @else {
+          <div class="activity-list">
+            @for (
+              activity of data.recentActivity;
+              track activity.id
+            ) {
+              <article class="activity-item">
+                <div
+                  class="activity-icon"
+                  [class]="
+                    'activity-icon ' +
+                    getActivityTone(activity)
+                  "
+                >
+                  <i
+                    class="bi"
+                    [class]="
+                      getActivityIcon(activity)
+                    "
+                  ></i>
+                </div>
+
+                <div class="activity-content">
+                  <p>{{ activity.description }}</p>
+
+                  <div class="activity-meta">
+                    <span>
+                      <i class="bi bi-person"></i>
+                      {{ activity.actorUsername }}
+                    </span>
+
+                    <time>
+                      {{
+                        activity.createdAt
+                          | date: 'MMM d, h:mm a'
+                      }}
+                    </time>
+                  </div>
+                </div>
+              </article>
+            }
+          </div>
+        }
+      </article>
+
+    </section>
+  }
+
+</section>

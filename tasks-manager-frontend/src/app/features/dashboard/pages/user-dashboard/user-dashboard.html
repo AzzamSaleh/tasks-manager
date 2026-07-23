@@ -1,0 +1,273 @@
+<section class="dashboard-page">
+
+  <header class="dashboard-heading">
+    <div class="heading-content">
+      <span class="dashboard-eyebrow">
+        Personal overview
+      </span>
+
+      <h2>
+        Hello,
+        {{ authService.currentUser()?.fullName }}
+      </h2>
+
+      <p>
+        Review your assigned workload, monitor progress,
+        and identify tasks that require attention.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="refresh-button"
+      [disabled]="isLoading()"
+      (click)="loadStatistics()"
+    >
+      @if (isLoading()) {
+        <span
+          class="spinner-border spinner-border-sm"
+          aria-hidden="true"
+        ></span>
+
+        Refreshing...
+      } @else {
+        <i class="bi bi-arrow-clockwise"></i>
+        Refresh dashboard
+      }
+    </button>
+  </header>
+
+  @if (isLoading()) {
+    <section class="dashboard-loading">
+      <div class="skeleton-grid">
+        @for (item of [1, 2, 3, 4]; track item) {
+          <div class="skeleton-card"></div>
+        }
+      </div>
+
+      <div class="dashboard-content-grid">
+        <div class="skeleton-panel"></div>
+        <div class="skeleton-panel"></div>
+      </div>
+    </section>
+  } @else if (errorMessage()) {
+    <section class="dashboard-error">
+      <div class="error-content">
+        <div class="error-icon">
+          <i class="bi bi-cloud-slash"></i>
+        </div>
+
+        <h3>Dashboard unavailable</h3>
+
+        <p>{{ errorMessage() }}</p>
+
+        <button
+          type="button"
+          class="retry-button"
+          (click)="loadStatistics()"
+        >
+          <i class="bi bi-arrow-clockwise me-2"></i>
+          Try again
+        </button>
+      </div>
+    </section>
+  } @else if (statistics(); as data) {
+
+    <section
+      class="metric-grid"
+      aria-label="My task statistics"
+    >
+      @for (
+        metric of metrics();
+        track metric.label
+      ) {
+        <article
+          class="metric-card"
+          [class]="'metric-card tone-' + metric.tone"
+        >
+          <div class="metric-card-header">
+            <div>
+              <div class="metric-label">
+                {{ metric.label }}
+              </div>
+
+              <p class="metric-value">
+                {{ metric.value }}
+              </p>
+            </div>
+
+            <div class="metric-icon">
+              <i
+                class="bi"
+                [class]="metric.icon"
+              ></i>
+            </div>
+          </div>
+
+          <p class="metric-description">
+            {{ metric.description }}
+          </p>
+        </article>
+      }
+    </section>
+
+    <section class="dashboard-content-grid">
+
+      <article class="dashboard-panel">
+        <header class="panel-heading">
+          <div>
+            <h3>My task progress</h3>
+
+            <p>
+              Distribution of your assigned tasks
+            </p>
+          </div>
+
+          <i class="bi bi-pie-chart text-secondary"></i>
+        </header>
+
+        <div class="panel-body completion-layout">
+          <div
+            class="completion-chart"
+            [style.background]="
+              completionChartBackground()
+            "
+          >
+            <div class="completion-value">
+              <strong>
+                {{ data.completionRate }}%
+              </strong>
+
+              <span>Completed</span>
+            </div>
+          </div>
+
+          <div class="status-breakdown">
+
+            <div class="status-row">
+              <div class="status-row-header">
+                <span>
+                  <i class="status-dot dot-pending"></i>
+                  Pending
+                </span>
+
+                <strong>
+                  {{ data.pendingTasks }}
+                </strong>
+              </div>
+
+              <div class="status-progress">
+                <div
+                  class="status-progress-bar bar-pending"
+                  [style.width.%]="
+                    getTaskPercentage(
+                      data.pendingTasks
+                    )
+                  "
+                ></div>
+              </div>
+            </div>
+
+            <div class="status-row">
+              <div class="status-row-header">
+                <span>
+                  <i class="status-dot dot-progress"></i>
+                  In progress
+                </span>
+
+                <strong>
+                  {{ data.inProgressTasks }}
+                </strong>
+              </div>
+
+              <div class="status-progress">
+                <div
+                  class="status-progress-bar bar-progress"
+                  [style.width.%]="
+                    getTaskPercentage(
+                      data.inProgressTasks
+                    )
+                  "
+                ></div>
+              </div>
+            </div>
+
+            <div class="status-row">
+              <div class="status-row-header">
+                <span>
+                  <i class="status-dot dot-completed"></i>
+                  Completed
+                </span>
+
+                <strong>
+                  {{ data.completedTasks }}
+                </strong>
+              </div>
+
+              <div class="status-progress">
+                <div
+                  class="status-progress-bar bar-completed"
+                  [style.width.%]="
+                    getTaskPercentage(
+                      data.completedTasks
+                    )
+                  "
+                ></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </article>
+
+      <article
+        class="dashboard-panel performance-panel"
+        [class]="
+          'dashboard-panel performance-panel ' +
+          performanceMessage().tone
+        "
+      >
+        <div class="performance-content">
+          <div class="performance-icon">
+            <i
+              class="bi"
+              [class]="performanceMessage().icon"
+            ></i>
+          </div>
+
+          <span class="performance-label">
+            Current workload
+          </span>
+
+          <h3>
+            {{ performanceMessage().title }}
+          </h3>
+
+          <p>
+            {{ performanceMessage().message }}
+          </p>
+
+          <div class="performance-summary">
+            <div>
+              <strong>
+                {{ data.totalTasks }}
+              </strong>
+
+              <span>Total tasks</span>
+            </div>
+
+            <div>
+              <strong>
+                {{ data.overdueTasks }}
+              </strong>
+
+              <span>Overdue</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+    </section>
+  }
+
+</section>

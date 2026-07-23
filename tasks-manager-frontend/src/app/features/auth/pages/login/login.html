@@ -1,0 +1,218 @@
+<main class="login-page">
+  <section class="login-container">
+
+    <div class="marketing-panel">
+      <div class="brand">
+        <div class="brand-icon">
+          <i class="bi bi-check2-square"></i>
+        </div>
+
+        <span>Tasks Manager</span>
+      </div>
+
+      <div class="marketing-content">
+        <span class="eyebrow">
+          Work smarter. Achieve more.
+        </span>
+
+        <h1>
+          The best task manager for productive teams.
+        </h1>
+
+        <p>
+          Organize tasks, collaborate through comments,
+          track progress, and receive real-time updates
+          from one modern workspace.
+        </p>
+
+        <div class="feature-list">
+          <div class="feature-item">
+            <i class="bi bi-shield-check"></i>
+            <span>Secure role-based access</span>
+          </div>
+
+          <div class="feature-item">
+            <i class="bi bi-lightning-charge"></i>
+            <span>Real-time task notifications</span>
+          </div>
+
+          <div class="feature-item">
+            <i class="bi bi-bar-chart"></i>
+            <span>Clear performance overview</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="marketing-decoration decoration-one"></div>
+      <div class="marketing-decoration decoration-two"></div>
+    </div>
+
+    <div class="form-panel">
+      <div class="login-form-wrapper">
+
+        <div class="mobile-brand">
+          <div class="brand-icon">
+            <i class="bi bi-check2-square"></i>
+          </div>
+
+          <span>Tasks Manager</span>
+        </div>
+
+        <div class="form-heading">
+          <span class="welcome-label">Welcome back</span>
+
+          <h2>Sign in to your account</h2>
+
+          <p>
+            Enter your username and password to continue.
+          </p>
+        </div>
+
+        @if (errorMessage()) {
+          <div
+            class="alert alert-danger login-alert"
+            role="alert"
+          >
+            <i class="bi bi-exclamation-circle-fill"></i>
+            <span>{{ errorMessage() }}</span>
+          </div>
+        }
+
+        <form
+          [formGroup]="loginForm"
+          (ngSubmit)="submit()"
+          novalidate
+        >
+          <div class="mb-4">
+            <label
+              for="username"
+              class="form-label"
+            >
+              Username
+            </label>
+
+            <div class="input-group-custom">
+              <i class="bi bi-person"></i>
+
+              <input
+                id="username"
+                type="text"
+                class="form-control"
+                formControlName="username"
+                placeholder="Enter your username"
+                autocomplete="username"
+                [class.is-invalid]="
+                  loginForm.controls.username.invalid &&
+                  loginForm.controls.username.touched
+                "
+              />
+            </div>
+
+            @if (
+              loginForm.controls.username.hasError('required') &&
+              loginForm.controls.username.touched
+            ) {
+              <div class="validation-message">
+                Username is required.
+              </div>
+            }
+
+            @if (
+              loginForm.controls.username.hasError('maxlength') &&
+              loginForm.controls.username.touched
+            ) {
+              <div class="validation-message">
+                Username cannot exceed 50 characters.
+              </div>
+            }
+          </div>
+
+          <div class="mb-4">
+            <label
+              for="password"
+              class="form-label"
+            >
+              Password
+            </label>
+
+            <div class="input-group-custom">
+              <i class="bi bi-lock"></i>
+
+              <input
+                id="password"
+                [type]="showPassword() ? 'text' : 'password'"
+                class="form-control password-input"
+                formControlName="password"
+                placeholder="Enter your password"
+                autocomplete="current-password"
+                [class.is-invalid]="
+                  loginForm.controls.password.invalid &&
+                  loginForm.controls.password.touched
+                "
+              />
+
+              <button
+                type="button"
+                class="password-toggle"
+                (click)="togglePasswordVisibility()"
+                [attr.aria-label]="
+                  showPassword()
+                    ? 'Hide password'
+                    : 'Show password'
+                "
+              >
+                <i
+                  class="bi"
+                  [class.bi-eye]="!showPassword()"
+                  [class.bi-eye-slash]="showPassword()"
+                ></i>
+              </button>
+            </div>
+
+            @if (
+              loginForm.controls.password.hasError('required') &&
+              loginForm.controls.password.touched
+            ) {
+              <div class="validation-message">
+                Password is required.
+              </div>
+            }
+
+            @if (
+              loginForm.controls.password.hasError('minlength') &&
+              loginForm.controls.password.touched
+            ) {
+              <div class="validation-message">
+                Password must contain at least 8 characters.
+              </div>
+            }
+          </div>
+
+          <button
+            type="submit"
+            class="btn login-button w-100"
+            [disabled]="isSubmitting()"
+          >
+            @if (isSubmitting()) {
+              <span
+                class="spinner-border spinner-border-sm"
+                aria-hidden="true"
+              ></span>
+
+              <span>Signing in...</span>
+            } @else {
+              <span>Sign in</span>
+              <i class="bi bi-arrow-right"></i>
+            }
+          </button>
+        </form>
+
+        <p class="security-note">
+          <i class="bi bi-shield-lock"></i>
+          Your account is protected using secure JWT authentication.
+        </p>
+      </div>
+    </div>
+
+  </section>
+</main>

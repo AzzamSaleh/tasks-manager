@@ -1,0 +1,116 @@
+@import '../../styles/dashboard-shared.css';
+
+.account-summary {
+  padding: 16px 22px;
+  border-top: 1px solid var(--border-gray);
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  background: rgba(245, 245, 245, 0.55);
+}
+
+.account-summary > div {
+  padding: 12px 14px;
+  border: 1px solid var(--border-gray);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  background: var(--white);
+}
+
+.account-summary span {
+  color: var(--medium-gray);
+  font-size: 11px;
+}
+
+.account-summary strong {
+  color: var(--dark-gray);
+  font-size: 17px;
+}
+
+.activity-list {
+  max-height: 410px;
+  overflow-y: auto;
+}
+
+.activity-item {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-gray);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 13px;
+}
+
+.activity-item:last-child {
+  border-bottom: 0;
+}
+
+.activity-icon {
+  width: 39px;
+  height: 39px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+}
+
+.activity-orange {
+  color: var(--primary-orange);
+  background: rgba(245, 130, 32, 0.11);
+}
+
+.activity-success {
+  color: var(--success-color);
+  background: rgba(25, 135, 84, 0.1);
+}
+
+.activity-danger {
+  color: var(--danger-color);
+  background: rgba(220, 53, 69, 0.1);
+}
+
+.activity-blue {
+  color: #0d6efd;
+  background: rgba(13, 110, 253, 0.1);
+}
+
+.activity-content {
+  min-width: 0;
+}
+
+.activity-content p {
+  margin: 0 0 8px;
+  color: var(--dark-gray);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.activity-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  color: var(--medium-gray);
+  font-size: 10px;
+}
+
+.activity-meta span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+@media (max-width: 500px) {
+  .account-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .activity-meta {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+  }
+}

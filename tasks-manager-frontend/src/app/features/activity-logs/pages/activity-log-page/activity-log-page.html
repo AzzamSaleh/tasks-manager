@@ -1,0 +1,526 @@
+<section class="activity-page">
+
+  <header class="page-heading">
+    <div>
+      <span class="page-eyebrow">
+        Administration
+      </span>
+
+      <h2>Activity log</h2>
+
+      <p>
+        Review important authentication, user,
+        task, comment, and profile activity.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="btn refresh-button"
+      [disabled]="
+        activityLogStore.isLoading()
+      "
+      (click)="refresh()"
+    >
+      <i class="bi bi-arrow-clockwise"></i>
+      Refresh
+    </button>
+  </header>
+
+  <section class="filter-panel">
+    <form
+      class="filter-grid"
+      [formGroup]="filterForm"
+    >
+      <div class="search-field">
+        <i class="bi bi-search"></i>
+
+        <input
+          type="search"
+          class="form-control"
+          formControlName="search"
+          placeholder="Search activity logs"
+          aria-label="Search activity logs"
+        />
+      </div>
+
+      <select
+        class="form-select"
+        formControlName="action"
+        aria-label="Filter by action"
+      >
+        <option value="">
+          All actions
+        </option>
+
+        @for (
+          option of actionOptions;
+          track option.value
+        ) {
+          <option [value]="option.value">
+            {{ option.label }}
+          </option>
+        }
+      </select>
+
+      <button
+        type="button"
+        class="btn clear-button"
+        (click)="clearFilters()"
+      >
+        <i class="bi bi-x-circle"></i>
+        Clear
+      </button>
+    </form>
+
+    <p class="filter-note">
+      <i class="bi bi-info-circle"></i>
+      Results are automatically ordered from
+      newest to oldest.
+    </p>
+  </section>
+
+  <section class="activity-panel">
+    <header class="panel-header">
+      <div>
+        <h3>System activity</h3>
+
+        <p>
+          {{ activityLogStore.totalElements() }}
+          recorded
+          {{
+            activityLogStore.totalElements() === 1
+              ? 'event'
+              : 'events'
+          }}
+        </p>
+      </div>
+
+      <div class="page-size-control">
+        <label for="activityPageSize">
+          Rows
+        </label>
+
+        <select
+          id="activityPageSize"
+          class="form-select form-select-sm"
+          [value]="
+            activityLogStore.pageSize()
+          "
+          (change)="changePageSize($event)"
+        >
+          @for (
+            size of pageSizeOptions;
+            track size
+          ) {
+            <option [value]="size">
+              {{ size }}
+            </option>
+          }
+        </select>
+      </div>
+    </header>
+
+    @if (activityLogStore.isLoading()) {
+      <div
+        class="loading-state"
+        aria-label="Loading activity logs"
+      >
+        @for (
+          item of [1, 2, 3, 4, 5];
+          track item
+        ) {
+          <div class="loading-row">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        }
+      </div>
+
+    } @else if (
+      activityLogStore.errorMessage()
+    ) {
+      <div class="state-view">
+        <div class="state-icon error-icon">
+          <i class="bi bi-cloud-slash"></i>
+        </div>
+
+        <h3>
+          Unable to load activity logs
+        </h3>
+
+        <p>
+          {{
+            activityLogStore
+              .errorMessage()
+          }}
+        </p>
+
+        <button
+          type="button"
+          class="btn primary-button"
+          (click)="refresh()"
+        >
+          <i class="bi bi-arrow-clockwise"></i>
+          Try again
+        </button>
+      </div>
+
+    } @else if (
+      activityLogStore
+        .activityLogs()
+        .length === 0
+    ) {
+      <div class="state-view">
+        <div class="state-icon">
+          <i class="bi bi-clock-history"></i>
+        </div>
+
+        <h3>No activity found</h3>
+
+        <p>
+          No activity records match the
+          current search and action filter.
+        </p>
+
+        <button
+          type="button"
+          class="btn clear-button"
+          (click)="clearFilters()"
+        >
+          Clear filters
+        </button>
+      </div>
+
+    } @else {
+
+      <!-- Desktop table -->
+      <div class="table-responsive desktop-table">
+        <table class="activity-table">
+          <thead>
+            <tr>
+              <th class="activity-column">
+                Activity
+              </th>
+
+              <th>Actor</th>
+              <th>Entity</th>
+              <th>Occurred</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (
+              activity of
+                activityLogStore.activityLogs();
+              track activity.id
+            ) {
+              <tr>
+                <td>
+                  <div class="activity-summary">
+                    <div
+                      class="activity-icon"
+                      [ngClass]="
+                        actionMeta[
+                          activity.action
+                        ].cssClass
+                      "
+                    >
+                      <i
+                        class="bi"
+                        [ngClass]="
+                          actionMeta[
+                            activity.action
+                          ].icon
+                        "
+                      ></i>
+                    </div>
+
+                    <div>
+                      <strong>
+                        {{
+                          actionMeta[
+                            activity.action
+                          ].label
+                        }}
+                      </strong>
+
+                      <p>
+                        {{ activity.description }}
+                      </p>
+                    </div>
+                  </div>
+                </td>
+
+                <td>
+                  <div class="actor-summary">
+                    <div class="actor-avatar">
+                      {{
+                        actorInitials(
+                          activity.actorUsername
+                        )
+                      }}
+                    </div>
+
+                    <div>
+                      <strong>
+                        {{ activity.actorUsername }}
+                      </strong>
+
+                      <span
+                        class="role-badge"
+                        [class.admin-role]="
+                          activity.actorRole ===
+                          'ADMIN'
+                        "
+                      >
+                        {{
+                          roleLabel(
+                            activity.actorRole
+                          )
+                        }}
+                      </span>
+                    </div>
+                  </div>
+                </td>
+
+                <td>
+                  <div class="entity-summary">
+                    <strong>
+                      {{
+                        entityLabel(
+                          activity.entityType
+                        )
+                      }}
+                    </strong>
+
+                    @if (
+                      activity.entityId !== null
+                    ) {
+                      <span>
+                        ID #{{ activity.entityId }}
+                      </span>
+                    }
+                  </div>
+                </td>
+
+                <td>
+                  <time class="activity-time">
+                    <strong>
+                      {{
+                        activity.createdAt
+                          | date:
+                            'MMM d, y'
+                      }}
+                    </strong>
+
+                    <span>
+                      {{
+                        activity.createdAt
+                          | date:
+                            'h:mm:ss a'
+                      }}
+                    </span>
+                  </time>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobile cards -->
+      <div class="mobile-activities">
+        @for (
+          activity of
+            activityLogStore.activityLogs();
+          track activity.id
+        ) {
+          <article class="activity-card">
+            <header class="activity-card-header">
+              <div
+                class="activity-icon"
+                [ngClass]="
+                  actionMeta[
+                    activity.action
+                  ].cssClass
+                "
+              >
+                <i
+                  class="bi"
+                  [ngClass]="
+                    actionMeta[
+                      activity.action
+                    ].icon
+                  "
+                ></i>
+              </div>
+
+              <div>
+                <strong>
+                  {{
+                    actionMeta[
+                      activity.action
+                    ].label
+                  }}
+                </strong>
+
+                <time>
+                  {{
+                    activity.createdAt
+                      | date:
+                        'MMM d, y, h:mm a'
+                  }}
+                </time>
+              </div>
+            </header>
+
+            <p class="card-description">
+              {{ activity.description }}
+            </p>
+
+            <div class="card-information">
+              <div>
+                <span>Actor</span>
+
+                <strong>
+                  {{ activity.actorUsername }}
+                </strong>
+              </div>
+
+              <div>
+                <span>Role</span>
+
+                <strong>
+                  {{
+                    roleLabel(
+                      activity.actorRole
+                    )
+                  }}
+                </strong>
+              </div>
+
+              <div>
+                <span>Entity</span>
+
+                <strong>
+                  {{
+                    entityLabel(
+                      activity.entityType
+                    )
+                  }}
+
+                  @if (
+                    activity.entityId !== null
+                  ) {
+                    #{{ activity.entityId }}
+                  }
+                </strong>
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+
+      <!-- Pagination -->
+      <footer class="pagination-footer">
+        <p>
+          Showing
+          <strong>
+            {{
+              activityLogStore
+                .rangeStart()
+            }}
+          </strong>
+          to
+          <strong>
+            {{
+              activityLogStore
+                .rangeEnd()
+            }}
+          </strong>
+          of
+          <strong>
+            {{
+              activityLogStore
+                .totalElements()
+            }}
+          </strong>
+          activity records
+        </p>
+
+        @if (
+          activityLogStore.totalPages() > 1
+        ) {
+          <nav
+            class="pagination-navigation"
+            aria-label="Activity log pagination"
+          >
+            <button
+              type="button"
+              class="pagination-button"
+              [disabled]="
+                activityLogStore
+                  .isFirstPage()
+              "
+              aria-label="Previous page"
+              (click)="
+                goToPage(
+                  activityLogStore
+                    .currentPage() - 1
+                )
+              "
+            >
+              <i class="bi bi-chevron-left"></i>
+            </button>
+
+            @for (
+              page of
+                activityLogStore.visiblePages();
+              track page
+            ) {
+              <button
+                type="button"
+                class="pagination-button"
+                [class.active]="
+                  page ===
+                  activityLogStore
+                    .currentPage()
+                "
+                [attr.aria-current]="
+                  page ===
+                  activityLogStore
+                    .currentPage()
+                    ? 'page'
+                    : null
+                "
+                (click)="goToPage(page)"
+              >
+                {{ page + 1 }}
+              </button>
+            }
+
+            <button
+              type="button"
+              class="pagination-button"
+              [disabled]="
+                activityLogStore
+                  .isLastPage()
+              "
+              aria-label="Next page"
+              (click)="
+                goToPage(
+                  activityLogStore
+                    .currentPage() + 1
+                )
+              "
+            >
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          </nav>
+        }
+      </footer>
+    }
+  </section>
+</section>

@@ -1,0 +1,77 @@
+@if (
+  confirmationService.state();
+  as confirmation
+) {
+  <div
+    class="dialog-backdrop"
+    role="presentation"
+    (click)="cancel()"
+  >
+    <section
+      class="confirmation-dialog"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="confirmation-title"
+      aria-describedby="confirmation-message"
+      (click)="$event.stopPropagation()"
+    >
+      <div
+        class="dialog-icon"
+        [class.danger]="
+          confirmation.tone === 'danger'
+        "
+        [class.warning]="
+          confirmation.tone === 'warning'
+        "
+      >
+        @switch (confirmation.tone) {
+          @case ('danger') {
+            <i class="bi bi-trash3"></i>
+          }
+
+          @case ('warning') {
+            <i class="bi bi-exclamation-triangle"></i>
+          }
+
+          @default {
+            <i class="bi bi-question-lg"></i>
+          }
+        }
+      </div>
+
+      <div class="dialog-content">
+        <h2 id="confirmation-title">
+          {{ confirmation.title }}
+        </h2>
+
+        <p id="confirmation-message">
+          {{ confirmation.message }}
+        </p>
+      </div>
+
+      <div class="dialog-actions">
+        <button
+          type="button"
+          class="btn cancel-button"
+          (click)="cancel()"
+        >
+          {{ confirmation.cancelText }}
+        </button>
+
+        <button
+          type="button"
+          class="btn confirm-button"
+          [class.danger-button]="
+            confirmation.tone === 'danger'
+          "
+          [class.warning-button]="
+            confirmation.tone === 'warning'
+          "
+          (click)="accept()"
+        >
+          {{ confirmation.confirmText }}
+        </button>
+      </div>
+    </section>
+  </div>
+}

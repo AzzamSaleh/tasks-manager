@@ -1,0 +1,285 @@
+<div class="application-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar" [class.open]="sidebarOpen()">
+    <div class="sidebar-header">
+      <a
+        class="brand"
+        [routerLink]="authService.isAdmin() ? '/admin' : '/user'"
+        (click)="closeSidebar()"
+      >
+        <span class="brand-icon">
+          <i class="bi bi-check2-square"></i>
+        </span>
+
+        <span class="brand-text"> Tasks Manager </span>
+      </a>
+
+      <button
+        type="button"
+        class="sidebar-close"
+        aria-label="Close navigation"
+        (click)="closeSidebar()"
+      >
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <!-- Sidebar authenticated identity -->
+    <div class="sidebar-user">
+      <div class="sidebar-avatar">
+        {{ displayedInitials() }}
+      </div>
+
+      <div>
+        <strong>
+          {{ displayedFullName() }}
+        </strong>
+
+        <span>
+          {{ displayedRole() }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Role-based navigation -->
+    <nav class="sidebar-navigation" aria-label="Main navigation">
+      <span class="navigation-label"> Workspace </span>
+
+      @for (item of navigationItems(); track item.label) {
+        @if (item.disabled) {
+          <span class="navigation-item disabled" aria-disabled="true">
+            <i class="bi" [class]="item.icon"></i>
+
+            <span>
+              {{ item.label }}
+            </span>
+
+            <small>Soon</small>
+          </span>
+        } @else {
+          <a
+            class="navigation-item"
+            [routerLink]="item.route"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{
+              exact: true,
+            }"
+            (click)="closeSidebar()"
+          >
+            <i class="bi" [class]="item.icon"></i>
+
+            <span>
+              {{ item.label }}
+            </span>
+          </a>
+        }
+      }
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="security-message">
+        <i class="bi bi-shield-check"></i>
+
+        <div>
+          <strong> Secure workspace </strong>
+
+          <span> Protected with JWT </span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Mobile sidebar overlay -->
+  @if (sidebarOpen()) {
+    <button
+      type="button"
+      class="sidebar-overlay"
+      aria-label="Close navigation"
+      (click)="closeSidebar()"
+    ></button>
+  }
+
+  <div class="main-area">
+    <!-- Top bar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button
+          type="button"
+          class="mobile-menu-button"
+          aria-label="Open navigation"
+          (click)="toggleSidebar()"
+        >
+          <i class="bi bi-list"></i>
+        </button>
+
+        <div>
+          <span class="page-eyebrow"> Tasks Manager </span>
+
+          <h1>
+            {{ authService.isAdmin() ? 'Admin workspace' : 'My workspace' }}
+          </h1>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <!-- Notifications -->
+        <div class="notification-area">
+          <button
+            type="button"
+            class="icon-button"
+            aria-label="Open notifications"
+            [attr.aria-expanded]="notificationPanelOpen()"
+            (click)="toggleNotifications()"
+          >
+            <i class="bi bi-bell"></i>
+
+            @if (notificationService.unreadCount() > 0) {
+              <span class="notification-badge">
+                {{
+                  notificationService.unreadCount() > 99 ? '99+' : notificationService.unreadCount()
+                }}
+              </span>
+            }
+          </button>
+
+          @if (notificationPanelOpen()) {
+            <section class="notification-panel" aria-label="Recent notifications">
+              <div class="panel-header">
+                <div>
+                  <h2>Notifications</h2>
+
+                  <span>
+                    {{ notificationService.unreadCount() }}
+                    unread
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  class="panel-close"
+                  aria-label="Close notifications"
+                  (click)="toggleNotifications()"
+                >
+                  <i class="bi bi-x-lg"></i>
+                </button>
+              </div>
+
+              <div class="notification-list">
+                @if (notificationService.isLoading()) {
+                  <div class="panel-state">
+                    <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+
+                    <span> Loading notifications... </span>
+                  </div>
+                } @else if (notificationService.notifications().length === 0) {
+                  <div class="panel-state empty">
+                    <i class="bi bi-bell-slash"></i>
+
+                    <strong> No notifications yet </strong>
+
+                    <span> New activity will appear here. </span>
+                  </div>
+                } @else {
+                  @for (
+                    notification of notificationService.notifications();
+                    track notification.id
+                  ) {
+                    <button
+                      type="button"
+                      class="notification-item"
+                      [class.unread]="!notification.read"
+                      (click)="markNotificationAsRead(notification.id)"
+                    >
+                      <span class="notification-icon">
+                        <i class="bi bi-bell"></i>
+                      </span>
+
+                      <span class="notification-content">
+                        <strong>
+                          {{ notification.title }}
+                        </strong>
+
+                        <span>
+                          {{ notification.message }}
+                        </span>
+
+                        <time>
+                          {{ notification.createdAt | date: 'MMM d, y, h:mm a' }}
+                        </time>
+                      </span>
+
+                      @if (!notification.read) {
+                        <span class="unread-dot" aria-label="Unread"></span>
+                      }
+                    </button>
+                  }
+                }
+              </div>
+            </section>
+          }
+        </div>
+
+        <!-- Authenticated user -->
+        <div class="user-area">
+          <button
+            type="button"
+            class="user-menu-button"
+            [attr.aria-expanded]="userMenuOpen()"
+            (click)="toggleUserMenu()"
+          >
+            <span class="header-avatar">
+              {{ displayedInitials() }}
+            </span>
+
+            <span class="header-user-details">
+              <strong>
+                {{ displayedFullName() }}
+              </strong>
+
+              <small>
+                {{ displayedShortRole() }}
+              </small>
+            </span>
+
+            <i class="bi bi-chevron-down" [class.bi-chevron-up]="userMenuOpen()"></i>
+          </button>
+
+          @if (userMenuOpen()) {
+            <div class="user-dropdown">
+              <!-- Current identity -->
+              <div class="dropdown-user">
+                <strong>
+                  {{ displayedFullName() }}
+                </strong>
+
+                <span> &#64;{{ displayedUsername() }} </span>
+              </div>
+
+              <!-- Enabled Profile navigation -->
+              <a class="dropdown-item" routerLink="/profile" (click)="closeUserMenu()">
+                <i class="bi bi-person-gear"></i>
+
+                <span>Profile</span>
+
+                <i class="bi bi-chevron-right"></i>
+              </a>
+
+              <div class="dropdown-divider"></div>
+
+              <button type="button" class="dropdown-item logout-item" (click)="requestLogout()">
+                <i class="bi bi-box-arrow-right"></i>
+
+                <span>Sign out</span>
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    </header>
+
+    <!-- Authenticated feature routes -->
+    <main class="page-content">
+      <router-outlet />
+    </main>
+  </div>
+</div>

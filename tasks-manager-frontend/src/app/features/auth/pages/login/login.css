@@ -1,0 +1,327 @@
+:host {
+  display: block;
+}
+
+.login-page {
+  min-height: 100vh;
+  padding: 32px;
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(245, 130, 32, 0.12),
+      transparent 30%
+    ),
+    #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-container {
+  width: min(1180px, 100%);
+  min-height: 700px;
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  background: #ffffff;
+  border: 1px solid #d9d9d9;
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 24px 70px rgba(26, 26, 26, 0.12);
+}
+
+.marketing-panel {
+  position: relative;
+  overflow: hidden;
+  padding: 48px;
+  color: #ffffff;
+  background:
+    linear-gradient(
+      145deg,
+      #4d4d4f 0%,
+      #29292b 100%
+    );
+}
+
+.brand,
+.mobile-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 21px;
+  font-weight: 700;
+}
+
+.brand-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  background: #f58220;
+  box-shadow: 0 10px 24px rgba(245, 130, 32, 0.3);
+}
+
+.marketing-content {
+  position: relative;
+  z-index: 2;
+  max-width: 520px;
+  margin-top: 110px;
+}
+
+.eyebrow,
+.welcome-label {
+  display: inline-block;
+  margin-bottom: 16px;
+  color: #f58220;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.marketing-content h1 {
+  margin-bottom: 24px;
+  font-size: clamp(40px, 5vw, 62px);
+  font-weight: 750;
+  line-height: 1.07;
+}
+
+.marketing-content > p {
+  max-width: 470px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 17px;
+  line-height: 1.8;
+}
+
+.feature-list {
+  margin-top: 40px;
+  display: grid;
+  gap: 18px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.feature-item i {
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(245, 130, 32, 0.45);
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  color: #f58220;
+  background: rgba(245, 130, 32, 0.1);
+}
+
+.marketing-decoration {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(245, 130, 32, 0.13);
+}
+
+.decoration-one {
+  width: 290px;
+  height: 290px;
+  right: -120px;
+  top: -100px;
+}
+
+.decoration-two {
+  width: 180px;
+  height: 180px;
+  right: 40px;
+  bottom: -90px;
+}
+
+.form-panel {
+  padding: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-form-wrapper {
+  width: min(420px, 100%);
+}
+
+.mobile-brand {
+  display: none;
+  margin-bottom: 42px;
+  color: #4d4d4f;
+}
+
+.form-heading {
+  margin-bottom: 32px;
+}
+
+.form-heading h2 {
+  margin-bottom: 12px;
+  color: #1a1a1a;
+  font-size: 34px;
+  font-weight: 750;
+}
+
+.form-heading p {
+  margin: 0;
+  color: #808285;
+}
+
+.form-label {
+  margin-bottom: 9px;
+  color: #4d4d4f;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.input-group-custom {
+  position: relative;
+}
+
+.input-group-custom > i {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 16px;
+  color: #808285;
+  transform: translateY(-50%);
+}
+
+.input-group-custom .form-control {
+  min-height: 52px;
+  padding: 12px 48px;
+  border: 1px solid #d9d9d9;
+  border-radius: 13px;
+  color: #1a1a1a;
+  background: #ffffff;
+  box-shadow: none;
+}
+
+.input-group-custom .form-control:focus {
+  border-color: #f58220;
+  box-shadow: 0 0 0 4px rgba(245, 130, 32, 0.12);
+}
+
+.password-toggle {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  right: 15px;
+  padding: 4px;
+  border: 0;
+  color: #808285;
+  background: transparent;
+  transform: translateY(-50%);
+}
+
+.validation-message {
+  margin-top: 7px;
+  color: #dc3545;
+  font-size: 13px;
+}
+
+.login-alert {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+.login-button {
+  min-height: 53px;
+  border: 0;
+  border-radius: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 11px;
+  color: #ffffff;
+  font-weight: 700;
+  background: #f58220;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.login-button:hover:not(:disabled) {
+  color: #ffffff;
+  background: #dc6e12;
+  transform: translateY(-1px);
+  box-shadow: 0 12px 25px rgba(245, 130, 32, 0.28);
+}
+
+.login-button:disabled {
+  color: #ffffff;
+  background: #f5a563;
+}
+
+.security-note {
+  margin-top: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #808285;
+  font-size: 12px;
+}
+
+@media (max-width: 900px) {
+  .login-page {
+    padding: 20px;
+  }
+
+  .login-container {
+    max-width: 600px;
+    min-height: auto;
+    grid-template-columns: 1fr;
+  }
+
+  .marketing-panel {
+    display: none;
+  }
+
+  .form-panel {
+    padding: 50px 36px;
+  }
+
+  .mobile-brand {
+    display: flex;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-page {
+    padding: 0;
+    background: #ffffff;
+  }
+
+  .login-container {
+    min-height: 100vh;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .form-panel {
+    padding: 34px 22px;
+  }
+
+  .form-heading h2 {
+    font-size: 28px;
+  }
+  
+}
+/* Keep only the application's custom password visibility button. */
+input[type='password']::-ms-reveal,
+input[type='password']::-ms-clear,
+input[type='password']::-webkit-credentials-auto-fill-button {
+  display: none !important;
+  visibility: hidden;
+  pointer-events: none;
+}

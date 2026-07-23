@@ -1,0 +1,1034 @@
+<section class="profile-page">
+
+  <header class="page-heading">
+    <div>
+      <span class="page-eyebrow">
+        Account settings
+      </span>
+
+      <h2>My profile</h2>
+
+      <p>
+        Review your account information and
+        manage your personal details and security.
+      </p>
+    </div>
+  </header>
+
+  @if (isLoading()) {
+    <section class="profile-loading">
+      <aside class="summary-skeleton">
+        <span class="avatar-skeleton"></span>
+        <span class="title-skeleton"></span>
+        <span class="text-skeleton short"></span>
+
+        <div class="badge-skeletons">
+          <span></span>
+          <span></span>
+        </div>
+      </aside>
+
+      <div class="settings-skeleton">
+        <span class="tabs-skeleton"></span>
+        <span class="heading-skeleton"></span>
+        <span class="input-skeleton"></span>
+        <span class="input-skeleton"></span>
+        <span class="button-skeleton"></span>
+      </div>
+    </section>
+
+  } @else if (loadError()) {
+    <section class="load-state">
+      <div class="state-icon">
+        <i class="bi bi-person-x"></i>
+      </div>
+
+      <h3>Unable to load profile</h3>
+
+      <p>{{ loadError() }}</p>
+
+      <button
+        type="button"
+        class="btn primary-button"
+        (click)="loadProfile()"
+      >
+        <i class="bi bi-arrow-clockwise"></i>
+        Try again
+      </button>
+    </section>
+
+  } @else if (profile(); as currentProfile) {
+
+    <section class="profile-workspace">
+
+      <!-- Persistent profile summary -->
+      <aside class="profile-summary-card">
+        <div class="summary-decoration"></div>
+
+        <div class="profile-avatar">
+          {{ initials() }}
+        </div>
+
+        <span class="identity-label">
+          Authenticated account
+        </span>
+
+        <h3>
+          {{ currentProfile.fullName }}
+        </h3>
+
+        <p class="username">
+          &#64;{{ currentProfile.username }}
+        </p>
+
+        <div class="profile-badges">
+          <span class="profile-badge role-badge">
+            <i class="bi bi-shield-check"></i>
+            {{ roleLabel() }}
+          </span>
+
+          <span
+            class="profile-badge"
+            [class.active-badge]="
+              currentProfile.status ===
+              'ACTIVE'
+            "
+            [class.inactive-badge]="
+              currentProfile.status ===
+              'INACTIVE'
+            "
+          >
+            <i
+              class="bi"
+              [class.bi-check-circle]="
+                currentProfile.status ===
+                'ACTIVE'
+              "
+              [class.bi-slash-circle]="
+                currentProfile.status ===
+                'INACTIVE'
+              "
+            ></i>
+
+            {{ statusLabel() }}
+          </span>
+        </div>
+
+        <div class="summary-divider"></div>
+
+        <div class="account-details">
+          <div class="account-detail">
+            <span class="detail-icon">
+              <i class="bi bi-envelope"></i>
+            </span>
+
+            <div>
+              <small>Email address</small>
+
+              <strong>
+                {{ currentProfile.email }}
+              </strong>
+            </div>
+          </div>
+
+          <div class="account-detail">
+            <span class="detail-icon">
+              <i class="bi bi-calendar3"></i>
+            </span>
+
+            <div>
+              <small>Member since</small>
+
+              <strong>
+                {{
+                  currentProfile.createdAt
+                    | date:
+                      'MMM d, y'
+                }}
+              </strong>
+            </div>
+          </div>
+
+          <div class="account-detail">
+            <span class="detail-icon">
+              <i class="bi bi-clock-history"></i>
+            </span>
+
+            <div>
+              <small>Last profile update</small>
+
+              <strong>
+                {{
+                  currentProfile.updatedAt
+                    | date:
+                      'MMM d, y, h:mm a'
+                }}
+              </strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="summary-security-note">
+          <i class="bi bi-lock"></i>
+
+          <span>
+            Your account is protected with
+            encrypted authentication.
+          </span>
+        </div>
+      </aside>
+
+      <!-- One active form -->
+      <section class="settings-panel">
+
+        <nav
+          class="settings-tabs"
+          aria-label="Profile settings"
+        >
+          <button
+            type="button"
+            class="settings-tab"
+            [class.active]="
+              activeTab() === 'personal'
+            "
+            [attr.aria-selected]="
+              activeTab() === 'personal'
+            "
+            aria-controls="personal-settings"
+            (click)="selectTab('personal')"
+          >
+            <span class="tab-icon">
+              <i class="bi bi-person"></i>
+            </span>
+
+            <span class="tab-copy">
+              <strong>
+                Personal information
+              </strong>
+
+              <small>
+                Name and email
+              </small>
+            </span>
+
+            @if (profileForm.dirty) {
+              <span
+                class="unsaved-dot"
+                title="Unsaved changes"
+              ></span>
+            }
+          </button>
+
+          <button
+            type="button"
+            class="settings-tab"
+            [class.active]="
+              activeTab() === 'security'
+            "
+            [attr.aria-selected]="
+              activeTab() === 'security'
+            "
+            aria-controls="security-settings"
+            (click)="selectTab('security')"
+          >
+            <span class="tab-icon">
+              <i class="bi bi-shield-lock"></i>
+            </span>
+
+            <span class="tab-copy">
+              <strong>
+                Security
+              </strong>
+
+              <small>
+                Change password
+              </small>
+            </span>
+
+            @if (passwordForm.dirty) {
+              <span
+                class="unsaved-dot"
+                title="Unfinished password change"
+              ></span>
+            }
+          </button>
+        </nav>
+
+        @if (activeTab() === 'personal') {
+          <div
+            id="personal-settings"
+            class="settings-content"
+          >
+            <header class="section-heading">
+              <div class="section-heading-icon">
+                <i class="bi bi-person-lines-fill"></i>
+              </div>
+
+              <div>
+                <span>Personal settings</span>
+
+                <h3>Profile information</h3>
+
+                <p>
+                  Update the name and email displayed
+                  across your Tasks Manager account.
+                </p>
+              </div>
+            </header>
+
+            @if (profileFormError()) {
+              <div
+                class="form-alert"
+                role="alert"
+              >
+                <i class="bi bi-exclamation-circle"></i>
+
+                <span>
+                  {{ profileFormError() }}
+                </span>
+              </div>
+            }
+
+            <form
+              class="settings-form"
+              [formGroup]="profileForm"
+              (ngSubmit)="submitProfile()"
+              novalidate
+            >
+              <div class="form-field">
+                <label for="profileUsername">
+                  Username
+                </label>
+
+                <div class="readonly-control">
+                  <span class="control-icon">
+                    <i class="bi bi-at"></i>
+                  </span>
+
+                  <strong>
+                    {{ currentProfile.username }}
+                  </strong>
+
+                  <span class="readonly-badge">
+                    Read only
+                  </span>
+                </div>
+
+                <p class="field-help">
+                  Username changes are managed by
+                  an Administrator.
+                </p>
+              </div>
+
+              <div class="form-field">
+                <label for="profileFullName">
+                  Full name
+                  <span>*</span>
+                </label>
+
+                <div class="input-with-icon">
+                  <i class="bi bi-person"></i>
+
+                  <input
+                    id="profileFullName"
+                    type="text"
+                    class="form-control"
+                    formControlName="fullName"
+                    autocomplete="name"
+                    placeholder="Enter your full name"
+                    [class.is-invalid]="
+                      profileForm.controls
+                        .fullName.invalid &&
+                      profileForm.controls
+                        .fullName.touched
+                    "
+                  />
+                </div>
+
+                @if (
+                  profileForm.controls
+                    .fullName.touched &&
+                  profileForm.controls
+                    .fullName.hasError(
+                      'required'
+                    )
+                ) {
+                  <div class="field-error">
+                    Full name is required.
+                  </div>
+                }
+
+                @if (
+                  profileForm.controls
+                    .fullName.hasError(
+                      'maxlength'
+                    )
+                ) {
+                  <div class="field-error">
+                    Full name cannot exceed
+                    100 characters.
+                  </div>
+                }
+
+                @if (
+                  profileBackendError(
+                    'fullName'
+                  )
+                ) {
+                  <div class="field-error">
+                    {{
+                      profileBackendError(
+                        'fullName'
+                      )
+                    }}
+                  </div>
+                }
+              </div>
+
+              <div class="form-field">
+                <label for="profileEmail">
+                  Email address
+                  <span>*</span>
+                </label>
+
+                <div class="input-with-icon">
+                  <i class="bi bi-envelope"></i>
+
+                  <input
+                    id="profileEmail"
+                    type="email"
+                    class="form-control"
+                    formControlName="email"
+                    autocomplete="email"
+                    placeholder="name@example.com"
+                    [class.is-invalid]="
+                      profileForm.controls
+                        .email.invalid &&
+                      profileForm.controls
+                        .email.touched
+                    "
+                  />
+                </div>
+
+                @if (
+                  profileForm.controls
+                    .email.touched &&
+                  profileForm.controls
+                    .email.hasError(
+                      'required'
+                    )
+                ) {
+                  <div class="field-error">
+                    Email is required.
+                  </div>
+                }
+
+                @if (
+                  profileForm.controls
+                    .email.touched &&
+                  profileForm.controls
+                    .email.hasError(
+                      'email'
+                    )
+                ) {
+                  <div class="field-error">
+                    Enter a valid email address.
+                  </div>
+                }
+
+                @if (
+                  profileForm.controls
+                    .email.hasError(
+                      'maxlength'
+                    )
+                ) {
+                  <div class="field-error">
+                    Email cannot exceed
+                    150 characters.
+                  </div>
+                }
+
+                @if (
+                  profileBackendError('email')
+                ) {
+                  <div class="field-error">
+                    {{
+                      profileBackendError(
+                        'email'
+                      )
+                    }}
+                  </div>
+                }
+              </div>
+
+              @if (profileForm.dirty) {
+                <div class="unsaved-message">
+                  <i class="bi bi-info-circle"></i>
+
+                  <span>
+                    You have unsaved profile changes.
+                  </span>
+                </div>
+              }
+
+              <footer class="form-actions">
+                <button
+                  type="button"
+                  class="btn secondary-button"
+                  [disabled]="
+                    isSavingProfile() ||
+                    !profileForm.dirty
+                  "
+                  (click)="resetProfileForm()"
+                >
+                  <i class="bi bi-arrow-counterclockwise"></i>
+                  Reset
+                </button>
+
+                <button
+                  type="submit"
+                  class="btn primary-button"
+                  [disabled]="
+                    isSavingProfile() ||
+                    !profileForm.dirty
+                  "
+                >
+                  @if (isSavingProfile()) {
+                    <span
+                      class="spinner-border spinner-border-sm"
+                      aria-hidden="true"
+                    ></span>
+
+                    Saving...
+                  } @else {
+                    <i class="bi bi-check2"></i>
+                    Save changes
+                  }
+                </button>
+              </footer>
+            </form>
+          </div>
+        }
+
+        @if (activeTab() === 'security') {
+          <div
+            id="security-settings"
+            class="settings-content"
+          >
+            <header class="section-heading">
+              <div
+                class="section-heading-icon security-heading-icon"
+              >
+                <i class="bi bi-shield-check"></i>
+              </div>
+
+              <div>
+                <span>Account security</span>
+
+                <h3>Change your password</h3>
+
+                <p>
+                  Confirm your current password before
+                  creating a secure replacement.
+                </p>
+              </div>
+            </header>
+
+            @if (passwordFormError()) {
+              <div
+                class="form-alert"
+                role="alert"
+              >
+                <i class="bi bi-exclamation-circle"></i>
+
+                <span>
+                  {{ passwordFormError() }}
+                </span>
+              </div>
+            }
+
+            <form
+              class="settings-form"
+              [formGroup]="passwordForm"
+              (ngSubmit)="submitPassword()"
+              novalidate
+            >
+              <div class="form-field">
+                <label for="currentPassword">
+                  Current password
+                  <span>*</span>
+                </label>
+
+                <div class="password-control">
+                  <i class="bi bi-lock input-icon"></i>
+
+                  <input
+                    id="currentPassword"
+                    [type]="
+                      isPasswordVisible(
+                        'currentPassword'
+                      )
+                        ? 'text'
+                        : 'password'
+                    "
+                    class="form-control"
+                    formControlName="currentPassword"
+                    autocomplete="current-password"
+                    placeholder="Enter current password"
+                    [class.is-invalid]="
+                      passwordForm.controls
+                        .currentPassword.invalid &&
+                      passwordForm.controls
+                        .currentPassword.touched
+                    "
+                  />
+
+                  <button
+                    type="button"
+                    class="visibility-button"
+                    [attr.aria-label]="
+                      isPasswordVisible(
+                        'currentPassword'
+                      )
+                        ? 'Hide current password'
+                        : 'Show current password'
+                    "
+                    (click)="
+                      togglePasswordVisibility(
+                        'currentPassword'
+                      )
+                    "
+                  >
+                    <i
+                      class="bi"
+                      [class.bi-eye]="
+                        !isPasswordVisible(
+                          'currentPassword'
+                        )
+                      "
+                      [class.bi-eye-slash]="
+                        isPasswordVisible(
+                          'currentPassword'
+                        )
+                      "
+                    ></i>
+                  </button>
+                </div>
+
+                @if (
+                  passwordForm.controls
+                    .currentPassword.touched &&
+                  passwordForm.controls
+                    .currentPassword.hasError(
+                      'required'
+                    )
+                ) {
+                  <div class="field-error">
+                    Current password is required.
+                  </div>
+                }
+
+                @if (
+                  passwordBackendError(
+                    'currentPassword'
+                  )
+                ) {
+                  <div class="field-error">
+                    {{
+                      passwordBackendError(
+                        'currentPassword'
+                      )
+                    }}
+                  </div>
+                }
+              </div>
+
+              <div class="form-field">
+                <label for="newPassword">
+                  New password
+                  <span>*</span>
+                </label>
+
+                <div class="password-control">
+                  <i class="bi bi-key input-icon"></i>
+
+                  <input
+                    id="newPassword"
+                    [type]="
+                      isPasswordVisible(
+                        'newPassword'
+                      )
+                        ? 'text'
+                        : 'password'
+                    "
+                    class="form-control"
+                    formControlName="newPassword"
+                    autocomplete="new-password"
+                    placeholder="Create a strong password"
+                    [class.is-invalid]="
+                      passwordForm.controls
+                        .newPassword.invalid &&
+                      passwordForm.controls
+                        .newPassword.touched
+                    "
+                  />
+
+                  <button
+                    type="button"
+                    class="visibility-button"
+                    [attr.aria-label]="
+                      isPasswordVisible(
+                        'newPassword'
+                      )
+                        ? 'Hide new password'
+                        : 'Show new password'
+                    "
+                    (click)="
+                      togglePasswordVisibility(
+                        'newPassword'
+                      )
+                    "
+                  >
+                    <i
+                      class="bi"
+                      [class.bi-eye]="
+                        !isPasswordVisible(
+                          'newPassword'
+                        )
+                      "
+                      [class.bi-eye-slash]="
+                        isPasswordVisible(
+                          'newPassword'
+                        )
+                      "
+                    ></i>
+                  </button>
+                </div>
+
+                @if (
+                  passwordForm.controls
+                    .newPassword.touched &&
+                  passwordForm.controls
+                    .newPassword.hasError(
+                      'required'
+                    )
+                ) {
+                  <div class="field-error">
+                    New password is required.
+                  </div>
+                }
+
+                @if (
+                  passwordForm.controls
+                    .newPassword.touched &&
+                  passwordForm.controls
+                    .newPassword.hasError(
+                      'pattern'
+                    )
+                ) {
+                  <div class="field-error">
+                    Enter a password that meets
+                    all requirements.
+                  </div>
+                }
+
+                @if (
+                  passwordForm.touched &&
+                  passwordForm.hasError(
+                    'sameAsCurrent'
+                  )
+                ) {
+                  <div class="field-error">
+                    New password must be different
+                    from the current password.
+                  </div>
+                }
+
+                @if (
+                  passwordBackendError(
+                    'newPassword'
+                  )
+                ) {
+                  <div class="field-error">
+                    {{
+                      passwordBackendError(
+                        'newPassword'
+                      )
+                    }}
+                  </div>
+                }
+              </div>
+
+              <section class="password-requirements">
+                <header>
+                  <i class="bi bi-shield-lock"></i>
+
+                  <div>
+                    <strong>
+                      Password requirements
+                    </strong>
+
+                    <span>
+                      All conditions must be satisfied.
+                    </span>
+                  </div>
+                </header>
+
+                <div class="requirement-grid">
+                  <span
+                    [class.requirement-met]="
+                      hasMinimumLength()
+                    "
+                  >
+                    <i
+                      class="bi"
+                      [class.bi-check-circle-fill]="
+                        hasMinimumLength()
+                      "
+                      [class.bi-circle]="
+                        !hasMinimumLength()
+                      "
+                    ></i>
+
+                    At least 8 characters
+                  </span>
+
+                  <span
+                    [class.requirement-met]="
+                      hasUppercase()
+                    "
+                  >
+                    <i
+                      class="bi"
+                      [class.bi-check-circle-fill]="
+                        hasUppercase()
+                      "
+                      [class.bi-circle]="
+                        !hasUppercase()
+                      "
+                    ></i>
+
+                    Uppercase letter
+                  </span>
+
+                  <span
+                    [class.requirement-met]="
+                      hasLowercase()
+                    "
+                  >
+                    <i
+                      class="bi"
+                      [class.bi-check-circle-fill]="
+                        hasLowercase()
+                      "
+                      [class.bi-circle]="
+                        !hasLowercase()
+                      "
+                    ></i>
+
+                    Lowercase letter
+                  </span>
+
+                  <span
+                    [class.requirement-met]="
+                      hasNumber()
+                    "
+                  >
+                    <i
+                      class="bi"
+                      [class.bi-check-circle-fill]="
+                        hasNumber()
+                      "
+                      [class.bi-circle]="
+                        !hasNumber()
+                      "
+                    ></i>
+
+                    Number
+                  </span>
+
+                  <span
+                    [class.requirement-met]="
+                      hasSpecialCharacter()
+                    "
+                  >
+                    <i
+                      class="bi"
+                      [class.bi-check-circle-fill]="
+                        hasSpecialCharacter()
+                      "
+                      [class.bi-circle]="
+                        !hasSpecialCharacter()
+                      "
+                    ></i>
+
+                    Special character
+                  </span>
+                </div>
+              </section>
+
+              <div class="form-field">
+                <label for="confirmPassword">
+                  Confirm new password
+                  <span>*</span>
+                </label>
+
+                <div class="password-control">
+                  <i class="bi bi-check2-circle input-icon"></i>
+
+                  <input
+                    id="confirmPassword"
+                    [type]="
+                      isPasswordVisible(
+                        'confirmPassword'
+                      )
+                        ? 'text'
+                        : 'password'
+                    "
+                    class="form-control"
+                    formControlName="confirmPassword"
+                    autocomplete="new-password"
+                    placeholder="Repeat the new password"
+                    [class.is-invalid]="
+                      passwordForm.controls
+                        .confirmPassword.touched &&
+                      (
+                        passwordForm.controls
+                          .confirmPassword.invalid ||
+                        passwordForm.hasError(
+                          'passwordMismatch'
+                        )
+                      )
+                    "
+                  />
+
+                  <button
+                    type="button"
+                    class="visibility-button"
+                    [attr.aria-label]="
+                      isPasswordVisible(
+                        'confirmPassword'
+                      )
+                        ? 'Hide password confirmation'
+                        : 'Show password confirmation'
+                    "
+                    (click)="
+                      togglePasswordVisibility(
+                        'confirmPassword'
+                      )
+                    "
+                  >
+                    <i
+                      class="bi"
+                      [class.bi-eye]="
+                        !isPasswordVisible(
+                          'confirmPassword'
+                        )
+                      "
+                      [class.bi-eye-slash]="
+                        isPasswordVisible(
+                          'confirmPassword'
+                        )
+                      "
+                    ></i>
+                  </button>
+                </div>
+
+                @if (
+                  passwordForm.controls
+                    .confirmPassword.touched &&
+                  passwordForm.controls
+                    .confirmPassword.hasError(
+                      'required'
+                    )
+                ) {
+                  <div class="field-error">
+                    Password confirmation is required.
+                  </div>
+                }
+
+                @if (
+                  passwordForm.controls
+                    .confirmPassword.touched &&
+                  passwordForm.hasError(
+                    'passwordMismatch'
+                  )
+                ) {
+                  <div class="field-error">
+                    Password confirmation does not
+                    match the new password.
+                  </div>
+                }
+
+                @if (
+                  passwordBackendError(
+                    'confirmPassword'
+                  )
+                ) {
+                  <div class="field-error">
+                    {{
+                      passwordBackendError(
+                        'confirmPassword'
+                      )
+                    }}
+                  </div>
+                }
+              </div>
+
+              <div class="security-notice">
+                <i class="bi bi-info-circle"></i>
+
+                <div>
+                  <strong>
+                    Keep your account secure
+                  </strong>
+
+                  <span>
+                    Never share your password with
+                    another person.
+                  </span>
+                </div>
+              </div>
+
+              <footer class="form-actions">
+                <button
+                  type="button"
+                  class="btn secondary-button"
+                  [disabled]="
+                    isChangingPassword() ||
+                    !passwordForm.dirty
+                  "
+                  (click)="resetPasswordForm()"
+                >
+                  <i class="bi bi-x-circle"></i>
+                  Clear
+                </button>
+
+                <button
+                  type="submit"
+                  class="btn primary-button"
+                  [disabled]="
+                    isChangingPassword() ||
+                    !passwordForm.dirty
+                  "
+                >
+                  @if (isChangingPassword()) {
+                    <span
+                      class="spinner-border spinner-border-sm"
+                      aria-hidden="true"
+                    ></span>
+
+                    Changing...
+                  } @else {
+                    <i class="bi bi-shield-check"></i>
+                    Change password
+                  }
+                </button>
+              </footer>
+            </form>
+          </div>
+        }
+      </section>
+    </section>
+  }
+</section>

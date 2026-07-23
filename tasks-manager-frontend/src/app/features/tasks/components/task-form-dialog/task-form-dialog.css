@@ -1,0 +1,330 @@
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1800;
+  padding: 20px;
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+  background: rgba(26, 26, 26, 0.58);
+  backdrop-filter: blur(4px);
+}
+
+.task-dialog {
+  width: min(780px, 100%);
+  max-height: calc(100vh - 40px);
+  border: 1px solid var(--border-gray);
+  border-radius: 22px;
+  overflow-y: auto;
+  color: var(--near-black);
+  background: var(--white);
+  box-shadow:
+    0 30px 90px rgba(26, 26, 26, 0.3);
+
+  /*
+   * Prevents Windows/browser dark mode from showing
+   * black native dropdowns with unreadable options.
+   */
+  color-scheme: light;
+}
+
+.dialog-header {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  min-height: 118px;
+  padding: 22px 24px;
+  border-bottom: 1px solid var(--border-gray);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(10px);
+}
+
+.dialog-heading {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+}
+
+.dialog-icon {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 auto;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  color: var(--primary-orange);
+  background: rgba(245, 130, 32, 0.12);
+  font-size: 20px;
+}
+
+.dialog-copy {
+  min-width: 0;
+}
+
+.dialog-eyebrow {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--primary-orange);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+}
+
+.dialog-copy h2 {
+  display: block;
+  margin: 0 0 5px;
+  color: var(--dark-gray);
+  font-size: 22px;
+  font-weight: 750;
+  line-height: 1.25;
+}
+
+.dialog-copy p {
+  display: block;
+  margin: 0;
+  color: var(--medium-gray);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.dialog-close {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  color: var(--medium-gray);
+  background: var(--light-gray);
+  font-size: 17px;
+}
+
+.dialog-close:hover:not(:disabled) {
+  color: var(--near-black);
+  background: var(--border-gray);
+}
+
+.dialog-error {
+  margin: 20px 24px 0;
+  padding: 13px 15px;
+  border: 1px solid rgba(220, 53, 69, 0.25);
+  border-radius: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: #842029;
+  background: rgba(220, 53, 69, 0.08);
+  font-size: 13px;
+}
+
+.task-form {
+  padding: 24px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.form-field {
+  min-width: 0;
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-field label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--dark-gray);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.form-field label span {
+  color: var(--danger-color);
+}
+
+.form-control,
+.form-select {
+  min-height: 49px;
+  border: 1px solid var(--border-gray);
+  border-radius: 12px;
+  color: var(--near-black);
+  background-color: var(--white);
+  box-shadow: none;
+  color-scheme: light;
+}
+
+.form-select option {
+  color: #1a1a1a;
+  background: #ffffff;
+}
+
+textarea.form-control {
+  resize: vertical;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--primary-orange);
+  box-shadow:
+    0 0 0 4px rgba(245, 130, 32, 0.11);
+}
+
+.field-footer {
+  margin-top: 6px;
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  color: var(--medium-gray);
+  font-size: 10px;
+}
+
+.field-error {
+  margin-top: 6px;
+  color: var(--danger-color);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.field-warning {
+  margin-top: 6px;
+  color: #8a6200;
+  font-size: 11px;
+}
+
+.initial-status {
+  min-height: 76px;
+  padding: 14px;
+  border: 1px solid rgba(13, 110, 253, 0.16);
+  border-radius: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  color: #084298;
+  background: rgba(13, 110, 253, 0.06);
+}
+
+.initial-status strong,
+.initial-status span {
+  display: block;
+}
+
+.initial-status strong {
+  margin-bottom: 3px;
+  font-size: 12px;
+}
+
+.initial-status span {
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.dialog-actions {
+  margin: 28px -24px -24px;
+  padding: 18px 24px;
+  border-top: 1px solid var(--border-gray);
+  display: flex;
+  justify-content: flex-end;
+  gap: 11px;
+  background: rgba(245, 245, 245, 0.6);
+}
+
+.dialog-actions .btn {
+  min-height: 46px;
+  padding: 10px 20px;
+  border-radius: 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.cancel-button {
+  min-width: 105px;
+  border: 1px solid var(--border-gray);
+  color: var(--dark-gray);
+  background: var(--white);
+}
+
+.save-button {
+  min-width: 155px;
+  border: 1px solid var(--primary-orange);
+  color: var(--white);
+  background: var(--primary-orange);
+}
+
+.save-button i,
+.save-button span {
+  display: inline-block;
+  color: inherit;
+}
+
+.save-button:hover:not(:disabled) {
+  color: var(--white);
+  background: #dc6e12;
+}
+
+.save-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+@media (max-width: 650px) {
+  .dialog-backdrop {
+    padding: 0;
+  }
+
+  .task-dialog {
+    width: 100%;
+    min-height: 100vh;
+    max-height: 100vh;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .dialog-header {
+    min-height: auto;
+    padding: 18px;
+  }
+
+  .dialog-copy p {
+    display: none;
+  }
+
+  .task-form {
+    padding: 18px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .full-width {
+    grid-column: auto;
+  }
+
+  .dialog-actions {
+    margin:
+      26px -18px -18px;
+    padding: 16px 18px;
+    flex-direction: column-reverse;
+  }
+
+  .dialog-actions .btn {
+    width: 100%;
+  }
+}

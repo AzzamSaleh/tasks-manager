@@ -1,0 +1,487 @@
+<div
+  class="dialog-backdrop"
+  role="presentation"
+  (click)="close()"
+>
+  <section
+    class="user-dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="user-dialog-title"
+    aria-describedby="user-dialog-description"
+    (click)="$event.stopPropagation()"
+  >
+    <header class="dialog-header">
+      <div class="dialog-heading">
+        <div class="dialog-icon">
+          <i
+            class="bi"
+            [class.bi-person-plus]="!isEditMode()"
+            [class.bi-person-gear]="isEditMode()"
+          ></i>
+        </div>
+
+        <div>
+          <span class="dialog-eyebrow">
+            User management
+          </span>
+
+          <h2 id="user-dialog-title">
+            {{
+              isEditMode()
+                ? 'Edit user'
+                : 'Create new user'
+            }}
+          </h2>
+
+          <p id="user-dialog-description">
+            {{
+              isEditMode()
+                ? 'Update account information, role, status, or password.'
+                : 'Create a secure account and assign its initial permissions.'
+            }}
+          </p>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="dialog-close"
+        aria-label="Close user form"
+        [disabled]="isSubmitting()"
+        (click)="close()"
+      >
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </header>
+
+    @if (formError()) {
+      <div
+        class="dialog-error"
+        role="alert"
+      >
+        <i class="bi bi-exclamation-circle-fill"></i>
+
+        <span>{{ formError() }}</span>
+      </div>
+    }
+
+    <form
+      class="user-form"
+      [formGroup]="userForm"
+      (ngSubmit)="submit()"
+      novalidate
+    >
+      <div class="form-grid">
+
+        <div class="form-field">
+          <label for="username">
+            Username
+            <span aria-hidden="true">*</span>
+          </label>
+
+          <div class="input-wrapper">
+            <i class="bi bi-at"></i>
+
+            <input
+              id="username"
+              type="text"
+              class="form-control"
+              formControlName="username"
+              placeholder="e.g. nour.user"
+              autocomplete="off"
+              [class.is-invalid]="
+                userForm.controls.username.invalid &&
+                userForm.controls.username.touched
+              "
+            />
+          </div>
+
+          @if (
+            userForm.controls.username.touched &&
+            userForm.controls.username.hasError('required')
+          ) {
+            <div class="field-error">
+              Username is required.
+            </div>
+          }
+
+          @if (
+            userForm.controls.username.touched &&
+            userForm.controls.username.hasError('minlength')
+          ) {
+            <div class="field-error">
+              Username must contain at least 3 characters.
+            </div>
+          }
+
+          @if (
+            userForm.controls.username.touched &&
+            userForm.controls.username.hasError('pattern')
+          ) {
+            <div class="field-error">
+              Use letters, numbers, dots, underscores, or hyphens only.
+            </div>
+          }
+
+          @if (getBackendError('username')) {
+            <div class="field-error">
+              {{ getBackendError('username') }}
+            </div>
+          }
+        </div>
+
+        <div class="form-field">
+          <label for="fullName">
+            Full name
+            <span aria-hidden="true">*</span>
+          </label>
+
+          <div class="input-wrapper">
+            <i class="bi bi-person"></i>
+
+            <input
+              id="fullName"
+              type="text"
+              class="form-control"
+              formControlName="fullName"
+              placeholder="Enter the user's full name"
+              autocomplete="name"
+              [class.is-invalid]="
+                userForm.controls.fullName.invalid &&
+                userForm.controls.fullName.touched
+              "
+            />
+          </div>
+
+          @if (
+            userForm.controls.fullName.touched &&
+            userForm.controls.fullName.hasError('required')
+          ) {
+            <div class="field-error">
+              Full name is required.
+            </div>
+          }
+
+          @if (
+            userForm.controls.fullName.touched &&
+            userForm.controls.fullName.hasError('minlength')
+          ) {
+            <div class="field-error">
+              Full name must contain at least 2 characters.
+            </div>
+          }
+
+          @if (getBackendError('fullName')) {
+            <div class="field-error">
+              {{ getBackendError('fullName') }}
+            </div>
+          }
+        </div>
+
+        <div class="form-field full-width">
+          <label for="email">
+            Email address
+            <span aria-hidden="true">*</span>
+          </label>
+
+          <div class="input-wrapper">
+            <i class="bi bi-envelope"></i>
+
+            <input
+              id="email"
+              type="email"
+              class="form-control"
+              formControlName="email"
+              placeholder="name@example.com"
+              autocomplete="email"
+              [class.is-invalid]="
+                userForm.controls.email.invalid &&
+                userForm.controls.email.touched
+              "
+            />
+          </div>
+
+          @if (
+            userForm.controls.email.touched &&
+            userForm.controls.email.hasError('required')
+          ) {
+            <div class="field-error">
+              Email address is required.
+            </div>
+          }
+
+          @if (
+            userForm.controls.email.touched &&
+            userForm.controls.email.hasError('email')
+          ) {
+            <div class="field-error">
+              Enter a valid email address.
+            </div>
+          }
+
+          @if (getBackendError('email')) {
+            <div class="field-error">
+              {{ getBackendError('email') }}
+            </div>
+          }
+        </div>
+
+        <div class="form-field">
+          <label for="role">
+            Role
+            <span aria-hidden="true">*</span>
+          </label>
+
+          <div class="select-wrapper">
+            <i class="bi bi-shield-check"></i>
+
+            <select
+              id="role"
+              class="form-select"
+              formControlName="role"
+            >
+              @for (role of roles; track role) {
+                <option [value]="role">
+                  {{
+                    role === 'ADMIN'
+                      ? 'Admin'
+                      : 'User'
+                  }}
+                </option>
+              }
+            </select>
+          </div>
+
+          <small class="field-help">
+            Admins can manage users and all tasks.
+          </small>
+        </div>
+
+        <div class="form-field">
+          <label for="status">
+            Account status
+            <span aria-hidden="true">*</span>
+          </label>
+
+          <div class="select-wrapper">
+            <i class="bi bi-toggle-on"></i>
+
+            <select
+              id="status"
+              class="form-select"
+              formControlName="status"
+            >
+              @for (
+                status of statuses;
+                track status
+              ) {
+                <option [value]="status">
+                  {{
+                    status === 'ACTIVE'
+                      ? 'Active'
+                      : 'Inactive'
+                  }}
+                </option>
+              }
+            </select>
+          </div>
+
+          <small class="field-help">
+            Inactive users cannot log in.
+          </small>
+        </div>
+
+        <div class="form-field">
+          <label for="password">
+            {{
+              isEditMode()
+                ? 'New password'
+                : 'Password'
+            }}
+
+            @if (!isEditMode()) {
+              <span aria-hidden="true">*</span>
+            }
+          </label>
+
+          <div class="input-wrapper">
+            <i class="bi bi-lock"></i>
+
+            <input
+              id="password"
+              [type]="
+                showPassword()
+                  ? 'text'
+                  : 'password'
+              "
+              class="form-control password-control"
+              formControlName="password"
+              [placeholder]="
+                isEditMode()
+                  ? 'Leave blank to keep current password'
+                  : 'Create a strong password'
+              "
+              autocomplete="new-password"
+              [class.is-invalid]="
+                userForm.controls.password.invalid &&
+                userForm.controls.password.touched
+              "
+            />
+
+            <button
+              type="button"
+              class="visibility-button"
+              [attr.aria-label]="
+                showPassword()
+                  ? 'Hide password'
+                  : 'Show password'
+              "
+              (click)="togglePassword()"
+            >
+              <i
+                class="bi"
+                [class.bi-eye]="!showPassword()"
+                [class.bi-eye-slash]="showPassword()"
+              ></i>
+            </button>
+          </div>
+
+          @if (
+            userForm.controls.password.touched &&
+            userForm.controls.password.hasError('required')
+          ) {
+            <div class="field-error">
+              Password is required.
+            </div>
+          }
+
+          @if (
+            userForm.controls.password.touched &&
+            userForm.controls.password.hasError('pattern')
+          ) {
+            <div class="field-error">
+              Use 8+ characters with uppercase, lowercase,
+              number, and special character.
+            </div>
+          }
+
+          @if (getBackendError('password')) {
+            <div class="field-error">
+              {{ getBackendError('password') }}
+            </div>
+          }
+        </div>
+
+        <div class="form-field">
+          <label for="confirmPassword">
+            Confirm password
+
+            @if (!isEditMode()) {
+              <span aria-hidden="true">*</span>
+            }
+          </label>
+
+          <div class="input-wrapper">
+            <i class="bi bi-shield-lock"></i>
+
+            <input
+              id="confirmPassword"
+              [type]="
+                showConfirmation()
+                  ? 'text'
+                  : 'password'
+              "
+              class="form-control password-control"
+              formControlName="confirmPassword"
+              placeholder="Repeat the password"
+              autocomplete="new-password"
+              [class.is-invalid]="
+                userForm.hasError('passwordMismatch') &&
+                userForm.controls.confirmPassword.touched
+              "
+            />
+
+            <button
+              type="button"
+              class="visibility-button"
+              [attr.aria-label]="
+                showConfirmation()
+                  ? 'Hide password confirmation'
+                  : 'Show password confirmation'
+              "
+              (click)="toggleConfirmation()"
+            >
+              <i
+                class="bi"
+                [class.bi-eye]="!showConfirmation()"
+                [class.bi-eye-slash]="showConfirmation()"
+              ></i>
+            </button>
+          </div>
+
+          @if (
+            userForm.controls.confirmPassword.touched &&
+            userForm.controls.confirmPassword.hasError('required')
+          ) {
+            <div class="field-error">
+              Password confirmation is required.
+            </div>
+          }
+
+          @if (
+            userForm.hasError('passwordMismatch') &&
+            userForm.controls.confirmPassword.touched
+          ) {
+            <div class="field-error">
+              Password and confirmation do not match.
+            </div>
+          }
+        </div>
+
+      </div>
+
+      <footer class="dialog-actions">
+        <button
+          type="button"
+          class="btn cancel-button"
+          [disabled]="isSubmitting()"
+          (click)="close()"
+        >
+          Cancel
+        </button>
+
+        <button
+          type="submit"
+          class="btn save-button"
+          [disabled]="isSubmitting()"
+        >
+          @if (isSubmitting()) {
+            <span
+              class="spinner-border spinner-border-sm"
+              aria-hidden="true"
+            ></span>
+
+            {{
+              isEditMode()
+                ? 'Saving changes...'
+                : 'Creating user...'
+            }}
+          } @else {
+            <i
+              class="bi"
+              [class.bi-check2]="isEditMode()"
+              [class.bi-person-plus]="!isEditMode()"
+            ></i>
+
+            {{
+              isEditMode()
+                ? 'Save changes'
+                : 'Create user'
+            }}
+          }
+        </button>
+      </footer>
+    </form>
+  </section>
+</div>

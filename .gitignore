@@ -1,0 +1,26 @@
+# Angular
+tasks-manager-frontend/node_modules/
+tasks-manager-frontend/.angular/
+tasks-manager-frontend/dist/
+tasks-manager-frontend/coverage/
+
+# Spring Boot and Maven
+tasks-manager-backend/target/
+tasks-manager-backend/src/main/resources/application-local.properties
+
+# Environment and secret files
+.env
+.env.*
+!.env.example
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+
+# Operating-system files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

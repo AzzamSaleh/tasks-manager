@@ -1,0 +1,829 @@
+<section class="tasks-page">
+
+  <!-- Page heading -->
+  <header class="page-heading">
+    <div>
+      <span class="page-eyebrow">
+        {{
+          isAdmin
+            ? 'Administration'
+            : 'Personal workspace'
+        }}
+      </span>
+
+      <h2>{{ pageTitle }}</h2>
+
+      <p>{{ pageDescription }}</p>
+    </div>
+
+    @if (isAdmin) {
+      <button
+        type="button"
+        class="btn primary-button"
+        [disabled]="isLoadingAssignees()"
+        (click)="openCreateDialog()"
+      >
+        @if (isLoadingAssignees()) {
+          <span
+            class="spinner-border spinner-border-sm"
+            aria-hidden="true"
+          ></span>
+
+          <span>Loading users...</span>
+        } @else {
+          <i class="bi bi-plus-lg"></i>
+          <span>Create task</span>
+        }
+      </button>
+    }
+  </header>
+
+  <!-- Filters -->
+  <section class="filter-panel">
+    <form
+      class="filter-grid"
+      [formGroup]="filterForm"
+    >
+      <div class="search-field">
+        <i class="bi bi-search"></i>
+
+        <input
+          type="search"
+          class="form-control"
+          formControlName="search"
+          placeholder="Search title, description, or assignee"
+          aria-label="Search tasks"
+        />
+      </div>
+
+      <select
+        class="form-select"
+        formControlName="status"
+        aria-label="Filter tasks by status"
+      >
+        <option value="">
+          All statuses
+        </option>
+
+        @for (
+          option of statusOptions;
+          track option.value
+        ) {
+          <option [value]="option.value">
+            {{ option.label }}
+          </option>
+        }
+      </select>
+
+      <select
+        class="form-select"
+        formControlName="priority"
+        aria-label="Filter tasks by priority"
+      >
+        <option value="">
+          All priorities
+        </option>
+
+        @for (
+          option of priorityOptions;
+          track option.value
+        ) {
+          <option [value]="option.value">
+            {{ option.label }}
+          </option>
+        }
+      </select>
+
+      @if (isAdmin) {
+        <select
+          class="form-select"
+          formControlName="assignedUserId"
+          aria-label="Filter tasks by assigned user"
+        >
+          <option value="">
+            All assignees
+          </option>
+
+          @for (
+            assignee of assignees();
+            track assignee.id
+          ) {
+            <option [value]="assignee.id">
+              {{ assignee.fullName }}
+            </option>
+          }
+        </select>
+      }
+
+      <select
+        class="form-select"
+        formControlName="sort"
+        aria-label="Sort tasks"
+      >
+        @for (
+          option of sortOptions;
+          track option.value
+        ) {
+          <option [value]="option.value">
+            {{ option.label }}
+          </option>
+        }
+      </select>
+
+      <button
+        type="button"
+        class="btn clear-button"
+        (click)="clearFilters()"
+      >
+        <i class="bi bi-x-circle"></i>
+        <span>Clear</span>
+      </button>
+    </form>
+
+    <p class="automatic-filter-note">
+      <i class="bi bi-lightning-charge"></i>
+      Search and filters update automatically.
+    </p>
+  </section>
+
+  <!-- Task list -->
+  <section class="tasks-panel">
+    <header class="panel-header">
+      <div>
+        <h3>
+          {{
+            isAdmin
+              ? 'All tasks'
+              : 'Assigned tasks'
+          }}
+        </h3>
+
+        <p>
+          {{ taskStore.totalElements() }}
+          task{{
+            taskStore.totalElements() === 1
+              ? ''
+              : 's'
+          }}
+        </p>
+      </div>
+
+      <div class="page-size-control">
+        <label for="taskPageSize">
+          Rows
+        </label>
+
+        <select
+          id="taskPageSize"
+          class="form-select form-select-sm"
+          [value]="taskStore.pageSize()"
+          (change)="changePageSize($event)"
+        >
+          @for (
+            size of pageSizeOptions;
+            track size
+          ) {
+            <option [value]="size">
+              {{ size }}
+            </option>
+          }
+        </select>
+      </div>
+    </header>
+
+    <!-- Loading state -->
+    @if (taskStore.isLoading()) {
+      <div
+        class="loading-state"
+        aria-label="Loading tasks"
+      >
+        @for (
+          item of [1, 2, 3, 4];
+          track item
+        ) {
+          <div class="loading-row">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        }
+      </div>
+
+    <!-- Error state -->
+    } @else if (taskStore.errorMessage()) {
+      <div class="state-view">
+        <div class="state-icon error-icon">
+          <i class="bi bi-cloud-slash"></i>
+        </div>
+
+        <h3>Unable to load tasks</h3>
+
+        <p>
+          {{ taskStore.errorMessage() }}
+        </p>
+
+        <button
+          type="button"
+          class="btn primary-button"
+          (click)="taskStore.reload()"
+        >
+          <i class="bi bi-arrow-clockwise"></i>
+          <span>Try again</span>
+        </button>
+      </div>
+
+    <!-- Empty state -->
+    } @else if (
+      taskStore.tasks().length === 0
+    ) {
+      <div class="state-view">
+        <div class="state-icon">
+          <i class="bi bi-list-check"></i>
+        </div>
+
+        <h3>No tasks found</h3>
+
+        <p>
+          {{
+            isAdmin
+              ? 'No tasks match the selected filters. Clear the filters or create a new task.'
+              : 'No assigned tasks match the selected filters.'
+          }}
+        </p>
+
+        <button
+          type="button"
+          class="btn clear-button"
+          (click)="clearFilters()"
+        >
+          <i class="bi bi-x-circle"></i>
+          <span>Clear filters</span>
+        </button>
+      </div>
+
+    <!-- Data -->
+    } @else {
+
+      <!-- Desktop table -->
+      <div class="table-responsive desktop-table">
+        <table class="task-table">
+          <thead>
+            <tr>
+              <th class="task-column">
+                Task
+              </th>
+
+              <th>
+                Assignee
+              </th>
+
+              <th>
+                Status
+              </th>
+
+              <th>
+                Due date
+              </th>
+
+              <th class="action-heading">
+                Actions
+              </th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (
+              task of taskStore.tasks();
+              track task.id
+            ) {
+              <tr>
+                <!-- Task summary -->
+                <td>
+                  <div class="task-summary">
+                    <div class="task-title-line">
+                      <strong>
+                        {{ task.title }}
+                      </strong>
+
+                      <span
+                        class="metadata-badge"
+                        [ngClass]="
+                          priorityMeta[
+                            task.priority
+                          ].cssClass
+                        "
+                      >
+                        <i
+                          class="bi"
+                          [ngClass]="
+                            priorityMeta[
+                              task.priority
+                            ].icon
+                          "
+                        ></i>
+
+                        {{
+                          priorityMeta[
+                            task.priority
+                          ].label
+                        }}
+                      </span>
+                    </div>
+
+                    <p>
+                      {{ task.description }}
+                    </p>
+
+                    <small>
+                      Created by
+                      {{ task.createdByName }}
+                    </small>
+                  </div>
+                </td>
+
+                <!-- Assignee -->
+                <td>
+                  <div class="assignee">
+                    <div class="assignee-avatar">
+                      {{
+                        getInitials(
+                          task.assignedUserName
+                        )
+                      }}
+                    </div>
+
+                    <strong>
+                      {{ task.assignedUserName }}
+                    </strong>
+                  </div>
+                </td>
+
+                <!-- Status -->
+                <td>
+                  @if (isAdmin) {
+                    <span
+                      class="metadata-badge"
+                      [ngClass]="
+                        statusMeta[
+                          task.status
+                        ].cssClass
+                      "
+                    >
+                      <i
+                        class="bi"
+                        [ngClass]="
+                          statusMeta[
+                            task.status
+                          ].icon
+                        "
+                      ></i>
+
+                      {{
+                        statusMeta[
+                          task.status
+                        ].label
+                      }}
+                    </span>
+                  } @else {
+                    <select
+                      class="status-select"
+                      [ngModel]="task.status"
+                      [ngModelOptions]="{
+                        standalone: true
+                      }"
+                      [disabled]="
+                        updatingStatusTaskId() ===
+                        task.id
+                      "
+                      [attr.aria-label]="
+                        'Update status for ' +
+                        task.title
+                      "
+                      (ngModelChange)="
+                        onStatusChange(
+                          task,
+                          $event
+                        )
+                      "
+                    >
+                      @for (
+                        option of statusOptions;
+                        track option.value
+                      ) {
+                        <option
+                          [value]="option.value"
+                        >
+                          {{ option.label }}
+                        </option>
+                      }
+                    </select>
+                  }
+                </td>
+
+                <!-- Due date -->
+                <td>
+                  <div
+                    class="due-date"
+                    [ngClass]="
+                      'due-' +
+                      dueState(task)
+                    "
+                  >
+                    <strong>
+                      {{
+                        task.dueDate
+                          | date:
+                            'MMM d, y'
+                      }}
+                    </strong>
+
+                    <span>
+                      {{ dueLabel(task) }}
+                    </span>
+                  </div>
+                </td>
+
+                <!-- Actions -->
+                <td>
+                  <div class="row-actions">
+                    <button
+                      type="button"
+                      class="btn row-action view-action"
+                      [attr.aria-label]="
+                        'View ' + task.title
+                      "
+                      (click)="openTaskDetails(task)"
+                    >
+                      <i class="bi bi-eye"></i>
+                      <span>View</span>
+                    </button>
+
+                    @if (isAdmin) {
+                      <button
+                        type="button"
+                        class="btn row-action edit-action"
+                        [attr.aria-label]="
+                          'Edit ' + task.title
+                        "
+                        (click)="openEditDialog(task)"
+                      >
+                        <i class="bi bi-pencil"></i>
+                        <span>Edit</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        class="btn row-action delete-action"
+                        [disabled]="
+                          deletingTaskId() ===
+                          task.id
+                        "
+                        [attr.aria-label]="
+                          'Delete ' + task.title
+                        "
+                        (click)="requestDelete(task)"
+                      >
+                        @if (
+                          deletingTaskId() ===
+                          task.id
+                        ) {
+                          <span
+                            class="spinner-border spinner-border-sm"
+                            aria-hidden="true"
+                          ></span>
+                        } @else {
+                          <i class="bi bi-trash3"></i>
+                          <span>Delete</span>
+                        }
+                      </button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobile task cards -->
+      <div class="mobile-tasks">
+        @for (
+          task of taskStore.tasks();
+          track task.id
+        ) {
+          <article class="task-card">
+            <header class="task-card-header">
+              <div>
+                <span
+                  class="metadata-badge"
+                  [ngClass]="
+                    priorityMeta[
+                      task.priority
+                    ].cssClass
+                  "
+                >
+                  <i
+                    class="bi"
+                    [ngClass]="
+                      priorityMeta[
+                        task.priority
+                      ].icon
+                    "
+                  ></i>
+
+                  {{
+                    priorityMeta[
+                      task.priority
+                    ].label
+                  }}
+                </span>
+
+                <h3>
+                  {{ task.title }}
+                </h3>
+              </div>
+
+              <span
+                class="metadata-badge"
+                [ngClass]="
+                  statusMeta[
+                    task.status
+                  ].cssClass
+                "
+              >
+                <i
+                  class="bi"
+                  [ngClass]="
+                    statusMeta[
+                      task.status
+                    ].icon
+                  "
+                ></i>
+
+                {{
+                  statusMeta[
+                    task.status
+                  ].label
+                }}
+              </span>
+            </header>
+
+            <p class="card-description">
+              {{ task.description }}
+            </p>
+
+            <div class="card-information">
+              <div>
+                <span>Assignee</span>
+
+                <strong>
+                  {{ task.assignedUserName }}
+                </strong>
+              </div>
+
+              <div>
+                <span>Created by</span>
+
+                <strong>
+                  {{ task.createdByName }}
+                </strong>
+              </div>
+
+              <div>
+                <span>Due date</span>
+
+                <strong>
+                  {{
+                    task.dueDate
+                      | date:
+                        'MMM d, y'
+                  }}
+                </strong>
+              </div>
+
+              <div>
+                <span>Schedule</span>
+
+                <strong
+                  [ngClass]="
+                    'due-' +
+                    dueState(task)
+                  "
+                >
+                  {{ dueLabel(task) }}
+                </strong>
+              </div>
+            </div>
+
+            <!-- User status update -->
+            @if (!isAdmin) {
+              <div class="mobile-status-field">
+                <label
+                  [for]="
+                    'mobile-status-' +
+                    task.id
+                  "
+                >
+                  Update status
+                </label>
+
+                <select
+                  [id]="
+                    'mobile-status-' +
+                    task.id
+                  "
+                  class="form-select"
+                  [ngModel]="task.status"
+                  [ngModelOptions]="{
+                    standalone: true
+                  }"
+                  [disabled]="
+                    updatingStatusTaskId() ===
+                    task.id
+                  "
+                  (ngModelChange)="
+                    onStatusChange(
+                      task,
+                      $event
+                    )
+                  "
+                >
+                  @for (
+                    option of statusOptions;
+                    track option.value
+                  ) {
+                    <option
+                      [value]="option.value"
+                    >
+                      {{ option.label }}
+                    </option>
+                  }
+                </select>
+              </div>
+            }
+
+            <!-- Mobile actions -->
+            @if (isAdmin) {
+              <footer
+                class="card-actions admin-card-actions"
+              >
+                <button
+                  type="button"
+                  class="btn view-card-button"
+                  (click)="openTaskDetails(task)"
+                >
+                  <i class="bi bi-eye"></i>
+                  <span>View</span>
+                </button>
+
+                <button
+                  type="button"
+                  class="btn edit-card-button"
+                  (click)="openEditDialog(task)"
+                >
+                  <i class="bi bi-pencil"></i>
+                  <span>Edit</span>
+                </button>
+
+                <button
+                  type="button"
+                  class="btn delete-card-button"
+                  [disabled]="
+                    deletingTaskId() ===
+                    task.id
+                  "
+                  (click)="requestDelete(task)"
+                >
+                  @if (
+                    deletingTaskId() ===
+                    task.id
+                  ) {
+                    <span
+                      class="spinner-border spinner-border-sm"
+                      aria-hidden="true"
+                    ></span>
+                  } @else {
+                    <i class="bi bi-trash3"></i>
+                    <span>Delete</span>
+                  }
+                </button>
+              </footer>
+            } @else {
+              <button
+                type="button"
+                class="btn view-card-button user-view-button"
+                (click)="openTaskDetails(task)"
+              >
+                <i class="bi bi-eye"></i>
+                <span>
+                  View details and comments
+                </span>
+              </button>
+            }
+          </article>
+        }
+      </div>
+
+      <!-- Pagination -->
+      <footer class="pagination-footer">
+        <p>
+          Showing
+          <strong>
+            {{ taskStore.rangeStart() }}
+          </strong>
+          to
+          <strong>
+            {{ taskStore.rangeEnd() }}
+          </strong>
+          of
+          <strong>
+            {{ taskStore.totalElements() }}
+          </strong>
+          tasks
+        </p>
+
+        @if (
+          taskStore.totalPages() > 1
+        ) {
+          <nav
+            class="pagination-navigation"
+            aria-label="Task pagination"
+          >
+            <button
+              type="button"
+              class="pagination-button"
+              [disabled]="
+                taskStore.isFirstPage()
+              "
+              aria-label="Previous page"
+              (click)="
+                goToPage(
+                  taskStore.currentPage() - 1
+                )
+              "
+            >
+              <i class="bi bi-chevron-left"></i>
+            </button>
+
+            @for (
+              page of taskStore.visiblePages();
+              track page
+            ) {
+              <button
+                type="button"
+                class="pagination-button"
+                [class.active]="
+                  page ===
+                  taskStore.currentPage()
+                "
+                [attr.aria-current]="
+                  page ===
+                  taskStore.currentPage()
+                    ? 'page'
+                    : null
+                "
+                (click)="goToPage(page)"
+              >
+                {{ page + 1 }}
+              </button>
+            }
+
+            <button
+              type="button"
+              class="pagination-button"
+              [disabled]="
+                taskStore.isLastPage()
+              "
+              aria-label="Next page"
+              (click)="
+                goToPage(
+                  taskStore.currentPage() + 1
+                )
+              "
+            >
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          </nav>
+        }
+      </footer>
+    }
+  </section>
+</section>
+
+<!-- Create/Edit Task dialog -->
+@if (taskDialogOpen()) {
+  <app-task-form-dialog
+    [task]="selectedTask()"
+    [assignees]="assignees()"
+    (closed)="closeTaskDialog()"
+    (saved)="handleTaskSaved()"
+  />
+}
+
+<!-- Task details and comments drawer -->
+@if (detailsTaskId(); as taskId) {
+  <app-task-details-dialog
+    [taskId]="taskId"
+    (closed)="closeTaskDetails()"
+  />
+}

@@ -1,0 +1,37 @@
+<section
+  class="alert-container"
+  aria-live="polite"
+  aria-atomic="false"
+>
+  @for (
+    alert of alertService.alerts();
+    track alert.id
+  ) {
+    <article
+      class="app-alert"
+      [class]="'app-alert alert-' + alert.type"
+      role="alert"
+    >
+      <div class="alert-icon">
+        <i
+          class="bi"
+          [class]="iconByType[alert.type]"
+        ></i>
+      </div>
+
+      <div class="alert-content">
+        <strong>{{ alert.title }}</strong>
+        <p>{{ alert.message }}</p>
+      </div>
+
+      <button
+        type="button"
+        class="alert-close"
+        aria-label="Close notification"
+        (click)="dismiss(alert.id)"
+      >
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </article>
+  }
+</section>

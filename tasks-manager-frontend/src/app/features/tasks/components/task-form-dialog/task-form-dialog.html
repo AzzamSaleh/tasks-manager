@@ -1,0 +1,355 @@
+<div
+  class="dialog-backdrop"
+  role="presentation"
+  (click)="close()"
+>
+  <section
+    class="task-dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="task-dialog-title"
+    (click)="$event.stopPropagation()"
+  >
+    <header class="dialog-header">
+      <div class="dialog-heading">
+        <div class="dialog-icon">
+          @if (isEditMode()) {
+            <i class="bi bi-pencil-square"></i>
+          } @else {
+            <i class="bi bi-plus-square"></i>
+          }
+        </div>
+
+        <div class="dialog-copy">
+          <span class="dialog-eyebrow">
+            Task management
+          </span>
+
+          <h2 id="task-dialog-title">
+            {{
+              isEditMode()
+                ? 'Edit task'
+                : 'Create new task'
+            }}
+          </h2>
+
+          <p>
+            {{
+              isEditMode()
+                ? 'Update the task, deadline, assignment, priority, and status.'
+                : 'Create a task and assign it to an active team member.'
+            }}
+          </p>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="dialog-close"
+        aria-label="Close task form"
+        [disabled]="isSubmitting()"
+        (click)="close()"
+      >
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </header>
+
+    @if (formError()) {
+      <div
+        class="dialog-error"
+        role="alert"
+      >
+        <i class="bi bi-exclamation-circle-fill"></i>
+        <span>{{ formError() }}</span>
+      </div>
+    }
+
+    <form
+      class="task-form"
+      [formGroup]="taskForm"
+      (ngSubmit)="submit()"
+      novalidate
+    >
+      <div class="form-grid">
+
+        <div class="form-field full-width">
+          <label for="taskTitle">
+            Title
+            <span>*</span>
+          </label>
+
+          <input
+            id="taskTitle"
+            type="text"
+            class="form-control"
+            formControlName="title"
+            placeholder="Enter a clear task title"
+            [class.is-invalid]="
+              taskForm.controls.title.invalid &&
+              taskForm.controls.title.touched
+            "
+          />
+
+          @if (
+            taskForm.controls.title.touched &&
+            taskForm.controls.title.hasError('required')
+          ) {
+            <div class="field-error">
+              Task title is required.
+            </div>
+          }
+
+          @if (
+            taskForm.controls.title.touched &&
+            taskForm.controls.title.hasError('minlength')
+          ) {
+            <div class="field-error">
+              Title must contain at least 3 characters.
+            </div>
+          }
+
+          @if (getBackendError('title')) {
+            <div class="field-error">
+              {{ getBackendError('title') }}
+            </div>
+          }
+        </div>
+
+        <div class="form-field full-width">
+          <label for="taskDescription">
+            Description
+            <span>*</span>
+          </label>
+
+          <textarea
+            id="taskDescription"
+            class="form-control"
+            rows="5"
+            formControlName="description"
+            placeholder="Describe the requirements and expected result"
+            [class.is-invalid]="
+              taskForm.controls.description.invalid &&
+              taskForm.controls.description.touched
+            "
+          ></textarea>
+
+          <div class="field-footer">
+            <span>
+              Provide enough information for the assignee.
+            </span>
+
+            <span>
+              {{
+                taskForm.controls.description
+                  .value.length
+              }}/2000
+            </span>
+          </div>
+
+          @if (
+            taskForm.controls.description.touched &&
+            taskForm.controls.description.hasError('required')
+          ) {
+            <div class="field-error">
+              Task description is required.
+            </div>
+          }
+
+          @if (getBackendError('description')) {
+            <div class="field-error">
+              {{ getBackendError('description') }}
+            </div>
+          }
+        </div>
+
+        <div class="form-field">
+          <label for="taskAssignee">
+            Assigned user
+            <span>*</span>
+          </label>
+
+          <select
+            id="taskAssignee"
+            class="form-select"
+            formControlName="assignedUserId"
+          >
+            <option value="">
+              Select an active user
+            </option>
+
+            @for (
+              assignee of assigneeOptions();
+              track assignee.id
+            ) {
+              <option
+                [value]="assignee.id"
+              >
+                {{ assignee.fullName }}
+                @if (assignee.username) {
+                  (&#64;{{ assignee.username }})
+                }
+              </option>
+            }
+          </select>
+
+          @if (
+            taskForm.controls.assignedUserId.touched &&
+            taskForm.controls.assignedUserId.invalid
+          ) {
+            <div class="field-error">
+              Select a user to assign this task.
+            </div>
+          }
+
+          @if (
+            assigneeOptions().length === 0
+          ) {
+            <div class="field-warning">
+              No active User accounts are available.
+            </div>
+          }
+
+          @if (getBackendError('assignedUserId')) {
+            <div class="field-error">
+              {{ getBackendError('assignedUserId') }}
+            </div>
+          }
+        </div>
+
+        <div class="form-field">
+          <label for="taskPriority">
+            Priority
+            <span>*</span>
+          </label>
+
+          <select
+            id="taskPriority"
+            class="form-select"
+            formControlName="priority"
+          >
+            @for (
+              option of priorityOptions;
+              track option.value
+            ) {
+              <option [value]="option.value">
+                {{ option.label }}
+              </option>
+            }
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label for="taskDueDate">
+            Due date
+            <span>*</span>
+          </label>
+
+          <input
+            id="taskDueDate"
+            type="datetime-local"
+            class="form-control"
+            formControlName="dueDate"
+          />
+
+          @if (
+            taskForm.controls.dueDate.touched &&
+            taskForm.controls.dueDate.hasError('required')
+          ) {
+            <div class="field-error">
+              Due date is required.
+            </div>
+          }
+
+          @if (getBackendError('dueDate')) {
+            <div class="field-error">
+              {{ getBackendError('dueDate') }}
+            </div>
+          }
+        </div>
+
+        @if (isEditMode()) {
+          <div class="form-field">
+            <label for="taskStatus">
+              Status
+              <span>*</span>
+            </label>
+
+            <select
+              id="taskStatus"
+              class="form-select"
+              formControlName="status"
+            >
+              @for (
+                option of statusOptions;
+                track option.value
+              ) {
+                <option [value]="option.value">
+                  {{ option.label }}
+                </option>
+              }
+            </select>
+          </div>
+        } @else {
+          <div class="initial-status">
+            <i class="bi bi-info-circle"></i>
+
+            <div>
+              <strong>
+                Initial status: Pending
+              </strong>
+
+              <span>
+                Status can be updated after the task
+                is created.
+              </span>
+            </div>
+          </div>
+        }
+
+      </div>
+
+      <footer class="dialog-actions">
+        <button
+          type="button"
+          class="btn cancel-button"
+          [disabled]="isSubmitting()"
+          (click)="close()"
+        >
+          Cancel
+        </button>
+
+        <button
+          type="submit"
+          class="btn save-button"
+          [disabled]="
+            isSubmitting() ||
+            assigneeOptions().length === 0
+          "
+        >
+          @if (isSubmitting()) {
+            <span
+              class="spinner-border spinner-border-sm"
+              aria-hidden="true"
+            ></span>
+
+            <span>
+              {{
+                isEditMode()
+                  ? 'Saving changes...'
+                  : 'Creating task...'
+              }}
+            </span>
+          } @else {
+            @if (isEditMode()) {
+              <i class="bi bi-check2"></i>
+              <span>Save changes</span>
+            } @else {
+              <i class="bi bi-plus-lg"></i>
+              <span>Create task</span>
+            }
+          }
+        </button>
+      </footer>
+    </form>
+  </section>
+</div>
