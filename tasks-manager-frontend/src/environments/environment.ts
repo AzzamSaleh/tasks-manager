@@ -1,15 +1,13 @@
 /*
- * Production configuration.
- *
- * Deployment URLs will be configured later
- * when the project is ready for deployment.
+ * Production configuration used by the deployed
+ * Angular application.
  */
 export const environment = {
-
   production: true,
 
-  apiUrl: '/api',
+  apiUrl:
+    'https://tasks-manager-backend-3kvz.onrender.com/api',
 
-  //websocketUrl
-  wsUrl: '/ws'
+  wsUrl:
+    'wss://tasks-manager-backend-3kvz.onrender.com/ws'
 };
